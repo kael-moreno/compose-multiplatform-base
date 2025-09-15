@@ -1,6 +1,6 @@
 TEAM_ID=
 
-PRODUCT_NAME=ComposeMultiplatformBase
+PRODUCT_NAME=Compose Multiplatform Base
 PRODUCT_BUNDLE_IDENTIFIER=com.kaelmoreno.compose.composemultiplatformbase.ComposeMultiplatformBase$(TEAM_ID)
 
 CURRENT_PROJECT_VERSION=1
