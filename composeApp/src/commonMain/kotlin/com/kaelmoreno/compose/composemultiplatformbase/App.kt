@@ -1,7 +1,6 @@
 package com.kaelmoreno.compose.composemultiplatformbase
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
@@ -17,9 +16,7 @@ fun App() {
 
     MaterialTheme {
         Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .safeContentPadding(),
+            modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
             AppNavigation(

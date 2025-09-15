@@ -26,6 +26,7 @@ fun MainScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .safeContentPadding()
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
