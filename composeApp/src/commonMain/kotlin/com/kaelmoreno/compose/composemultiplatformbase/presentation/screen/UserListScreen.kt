@@ -1,0 +1,321 @@
+package com.kaelmoreno.compose.composemultiplatformbase.presentation.screen
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.kaelmoreno.compose.composemultiplatformbase.Logger
+import com.kaelmoreno.compose.composemultiplatformbase.data.model.User
+import com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel.UserViewModel
+
+@Composable
+fun UserListScreen(
+    viewModel: UserViewModel,
+    modifier: Modifier = Modifier
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        Logger.i("UserListScreen initialized", "UI")
+        viewModel.loadUsers() // Call loadUsers from the UI instead of ViewModel init
+    }
+
+    // Debug logging for UI state changes
+    LaunchedEffect(uiState.selectedUser) {
+        Logger.d("UI State selectedUser changed to: ${uiState.selectedUser?.name}", "UI")
+    }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Users",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+
+        when {
+            uiState.isLoading -> {
+                LoadingContent()
+            }
+            uiState.error != null -> {
+                ErrorContent(
+                    error = uiState.error!!,
+                    onRetry = { viewModel.retryLoadUsers() }
+                )
+            }
+            uiState.users.isEmpty() -> {
+                EmptyContent(onRefresh = { viewModel.loadUsers() })
+            }
+            else -> {
+                // Put everything in a single LazyColumn for proper scrolling
+                LazyColumn(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    // Header with user count and refresh
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "${uiState.users.size} users loaded",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            TextButton(onClick = { viewModel.loadUsers() }) {
+                                Text("Refresh")
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+
+                    // User list items
+                    items(uiState.users) { user ->
+                        UserListItem(
+                            user = user,
+                            onClick = { viewModel.selectUser(user) }
+                        )
+                    }
+
+                    // Selected user details
+                    uiState.selectedUser?.let { user ->
+                        item {
+                            Logger.d("Rendering UserDetailCard for: ${user.name}", "UI")
+                            Spacer(modifier = Modifier.height(16.dp))
+                            UserDetailCard(
+                                user = user,
+                                onDismiss = { viewModel.clearSelectedUser() }
+                            )
+                        }
+                    }
+
+                    // Test button
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { viewModel.selectUser(uiState.users.first()) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("TEST: Select First User")
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LoadingContent() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CircularProgressIndicator()
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Loading users...")
+        }
+    }
+}
+
+@Composable
+private fun ErrorContent(
+    error: String,
+    onRetry: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Error",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = error,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = onRetry) {
+                Text("Retry")
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyContent(onRefresh: () -> Unit) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("No users found")
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = onRefresh) {
+                Text("Refresh")
+            }
+        }
+    }
+}
+
+@Composable
+private fun UserList(
+    users: List<User>,
+    onUserClick: (User) -> Unit,
+    onRefresh: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "${users.size} users loaded",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            TextButton(onClick = onRefresh) {
+                Text("Refresh")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        LazyColumn {
+            items(users) { user ->
+                UserListItem(
+                    user = user,
+                    onClick = { onUserClick(user) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun UserListItem(
+    user: User,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        onClick = {
+            Logger.d("User card clicked: ${user.name}", "UI")
+            onClick()
+        }
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = user.name,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "@${user.username}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = user.email,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun UserDetailCard(
+    user: User,
+    onDismiss: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "User Details",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                TextButton(onClick = onDismiss) {
+                    Text("Close")
+                }
+            }
+
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+            Text(
+                text = "Name: ${user.name}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = "Username: @${user.username}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = "Email: ${user.email}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = "Phone: ${user.phone}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = "Website: ${user.website}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = "Company: ${user.company.name}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = "Address: ${user.address.street}, ${user.address.city}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }
+}
