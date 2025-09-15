@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
 import com.kaelmoreno.compose.composemultiplatformbase.data.model.User
-import com.kaelmoreno.compose.composemultiplatformbase.data.repository.UserRepository
+import com.kaelmoreno.compose.composemultiplatformbase.data.repository.Repository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +19,7 @@ data class UserUiState(
 
 class UserViewModel : ViewModel() {
 
-    private val repository = UserRepository()
+    private val repository = Repository()
 
     // Simple StateFlow that we manually update
     private val _uiState = MutableStateFlow(UserUiState())
@@ -37,14 +37,14 @@ class UserViewModel : ViewModel() {
         }
 
         viewModelScope.launch {
-            repository.isLoading.collect { isLoading ->
+            repository.isLoadingUsers.collect { isLoading ->
                 Logger.d("Repository loading state: $isLoading", "UserViewModel")
                 _uiState.value = _uiState.value.copy(isLoading = isLoading)
             }
         }
 
         viewModelScope.launch {
-            repository.error.collect { error ->
+            repository.userError.collect { error ->
                 Logger.d("Repository error: $error", "UserViewModel")
                 _uiState.value = _uiState.value.copy(error = error)
             }
@@ -74,12 +74,12 @@ class UserViewModel : ViewModel() {
 
     fun retryLoadUsers() {
         Logger.i("Retrying to load users", "UserViewModel")
-        repository.clearError()
+        repository.clearUserError()
         loadUsers()
     }
 
     fun clearError() {
         Logger.d("Clearing error", "UserViewModel")
-        repository.clearError()
+        repository.clearUserError()
     }
 }

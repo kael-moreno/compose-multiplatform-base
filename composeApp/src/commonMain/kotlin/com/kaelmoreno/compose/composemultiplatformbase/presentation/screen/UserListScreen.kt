@@ -176,42 +176,6 @@ private fun EmptyContent(onRefresh: () -> Unit) {
 }
 
 @Composable
-private fun UserList(
-    users: List<User>,
-    onUserClick: (User) -> Unit,
-    onRefresh: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(modifier = modifier) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "${users.size} users loaded",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            TextButton(onClick = onRefresh) {
-                Text("Refresh")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        LazyColumn {
-            items(users) { user ->
-                UserListItem(
-                    user = user,
-                    onClick = { onUserClick(user) }
-                )
-            }
-        }
-    }
-}
-
-@Composable
 private fun UserListItem(
     user: User,
     onClick: () -> Unit
@@ -276,7 +240,11 @@ private fun UserDetailCard(
                 }
             }
 
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                thickness = DividerDefaults.Thickness,
+                color = DividerDefaults.color
+            )
 
             Text(
                 text = "Name: ${user.name}",
