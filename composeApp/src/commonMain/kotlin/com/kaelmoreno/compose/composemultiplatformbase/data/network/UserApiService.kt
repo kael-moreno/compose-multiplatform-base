@@ -8,7 +8,6 @@ import io.ktor.client.request.*
 class UserApiService {
 
     private val client = NetworkClient.httpClient
-    private val baseUrl = HttpConstants.BASE_URL
 
     suspend fun getUsers(): Result<List<User>> {
         return try {
