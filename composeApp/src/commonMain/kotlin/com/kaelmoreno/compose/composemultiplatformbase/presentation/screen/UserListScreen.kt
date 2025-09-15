@@ -80,36 +80,26 @@ fun UserListScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                     }
 
-                    // User list items
+                    // User list items with details shown below each clicked item
                     items(uiState.users) { user ->
                         UserListItem(
                             user = user,
-                            onClick = { viewModel.selectUser(user) }
+                            onClick = {
+                                if (uiState.selectedUser?.id == user.id) {
+                                    viewModel.clearSelectedUser() // Close if same user clicked
+                                } else {
+                                    viewModel.selectUser(user) // Select new user
+                                }
+                            }
                         )
-                    }
 
-                    // Selected user details
-                    uiState.selectedUser?.let { user ->
-                        item {
-                            Logger.d("Rendering UserDetailCard for: ${user.name}", "UI")
-                            Spacer(modifier = Modifier.height(16.dp))
+                        // Show details immediately below this user card if it's selected
+                        if (uiState.selectedUser?.id == user.id) {
                             UserDetailCard(
                                 user = user,
                                 onDismiss = { viewModel.clearSelectedUser() }
                             )
                         }
-                    }
-
-                    // Test button
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(
-                            onClick = { viewModel.selectUser(uiState.users.first()) },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("TEST: Select First User")
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
             }
