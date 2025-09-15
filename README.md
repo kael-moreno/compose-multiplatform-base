@@ -1,18 +1,22 @@
 # Compose Multiplatform Base
 
-A modern, production-ready Kotlin Multiplatform project template built with Compose Multiplatform, targeting Android and iOS platforms. This project demonstrates best practices for cross-platform mobile development with shared business logic and UI.
+A modern, production-ready Kotlin Multiplatform project template built with Compose Multiplatform, targeting Android and iOS platforms. This project demonstrates best practices for cross-platform mobile development with shared business logic, UI, and a clean architecture pattern.
 
 ## 🚀 Features
 
 - ✅ **Cross-platform UI** with Compose Multiplatform
 - ✅ **MVVM Architecture** with ViewModel and StateFlow
+- ✅ **Type-safe Navigation** with Navigation Compose and Kotlinx Serialization
 - ✅ **Network API integration** with Ktor client
 - ✅ **JSON serialization** with kotlinx.serialization
-- ✅ **Logging** with Napier (cross-platform logging)
+- ✅ **Cross-platform logging** with Napier
 - ✅ **Coroutines** for asynchronous programming
-- ✅ **Modern Material 3 design**
+- ✅ **Modern Material 3 design** with GitHub-inspired color scheme
 - ✅ **Lifecycle-aware components**
 - ✅ **Clean Architecture** with separation of concerns
+- ✅ **Base ViewModel** with common loading/error state management
+- ✅ **Repository pattern** for data management
+- ✅ **Comprehensive error handling** and logging
 
 ## 📱 Platforms
 
@@ -27,14 +31,18 @@ compose-multiplatform-base/
 │   ├── src/
 │   │   ├── commonMain/kotlin/           # Shared Kotlin code
 │   │   │   ├── data/                    # Data layer
-│   │   │   │   ├── model/               # Data models
-│   │   │   │   ├── network/             # API services
-│   │   │   │   └── repository/          # Repository pattern
+│   │   │   │   ├── model/               # Data models (User, Post, Comment, etc.)
+│   │   │   │   ├── network/             # API services and HTTP client
+│   │   │   │   └── repository/          # Repository pattern implementation
+│   │   │   ├── navigation/              # Type-safe navigation setup
+│   │   │   │   ├── AppNavigation.kt     # Navigation configuration
+│   │   │   │   └── Screen.kt            # Navigation routes
 │   │   │   ├── presentation/            # Presentation layer
-│   │   │   │   ├── screen/              # Compose screens
-│   │   │   │   └── viewmodel/           # ViewModels
+│   │   │   │   ├── screen/              # Compose screens (Main, UserList, PostsList)
+│   │   │   │   └── viewmodel/           # ViewModels with BaseViewModel
+│   │   │   ├── ui/                      # UI components and theming
 │   │   │   ├── App.kt                   # Main App composable
-│   │   │   ├── Logger.kt                # Logging utilities
+│   │   │   ├── Logger.kt                # Cross-platform logging utilities
 │   │   │   └── Platform.kt              # Platform-specific code
 │   │   ├── androidMain/                 # Android-specific code
 │   │   └── iosMain/                     # iOS-specific code
@@ -49,24 +57,38 @@ compose-multiplatform-base/
 - **Compose Multiplatform** 1.8.2 - UI framework
 - **Kotlin Multiplatform** - Code sharing across platforms
 
-### Dependencies
-- **Ktor** 3.3.0 - HTTP client for API calls
-- **kotlinx.serialization** 1.9.0 - JSON serialization
-- **kotlinx.coroutines** 1.10.2 - Asynchronous programming
+### Architecture & UI
+- **MVVM Architecture** - Clean separation of concerns
+- **Material 3** - Modern design system with GitHub-inspired theming
+- **Navigation Compose** 2.9.0-beta01 - Type-safe navigation
+- **Lifecycle ViewModel Compose** 2.9.3 - Lifecycle-aware ViewModels
+
+### Networking & Data
+- **Ktor Client** 3.3.0 - HTTP client for API calls
+- **Kotlinx Serialization** 1.9.0 - JSON serialization
+- **Kotlinx Coroutines** 1.10.2 - Asynchronous programming
+
+### Development & Debugging
 - **Napier** 2.7.1 - Cross-platform logging
-- **AndroidX Lifecycle** 2.9.3 - Lifecycle-aware components
-- **Material 3** - Modern Android design system
+- **Android Gradle Plugin** 8.10.1
+- **Gradle** with Version Catalogs
+
+### API Integration
+- **JSONPlaceholder API** - Demo REST API for:
+  - Users management
+  - Posts and comments
+  - Albums and photos
+  - Todo items
 
 ## 🚀 Getting Started
 
 ### Prerequisites
+- **Android Studio** Giraffe or later
+- **Xcode** 14+ (for iOS development)
+- **JDK** 11 or later
+- **Kotlin** 2.2.10+
 
-- **Android Studio** Hedgehog (2023.1.1) or newer
-- **Xcode** 15.0+ (for iOS development)
-- **JDK** 17 or higher
-- **Kotlin Multiplatform Plugin** for Android Studio
-
-### Setup
+### Setup Instructions
 
 1. **Clone the repository**
    ```bash
@@ -75,145 +97,131 @@ compose-multiplatform-base/
    ```
 
 2. **Open in Android Studio**
-   - Open Android Studio
-   - Select "Open an existing project"
-   - Navigate to the cloned directory and open it
+   - Open the project in Android Studio
+   - Sync Gradle files
+   - Wait for indexing to complete
 
-3. **Sync the project**
-   - Android Studio will automatically sync Gradle
-   - Wait for the sync to complete
+3. **Run on Android**
+   ```bash
+   ./gradlew composeApp:assembleDebug
+   ```
+   Or use the "Run" button in Android Studio
 
-### Building and Running
+4. **Run on iOS**
+   - Open `iosApp/iosApp.xcodeproj` in Xcode
+   - Select target device/simulator
+   - Build and run
 
-#### Android
+### Build Commands
 
-**Option 1: Using Android Studio**
-- Select the `composeApp` run configuration
-- Click the "Run" button or press `Ctrl+R` (Windows/Linux) or `Cmd+R` (macOS)
-
-**Option 2: Using Command Line**
 ```bash
-# Debug build
-./gradlew :composeApp:assembleDebug
+# Android Debug Build
+./gradlew composeApp:assembleDebug
 
-# Install on connected device/emulator
-./gradlew :composeApp:installDebug
+# Android Release Build
+./gradlew composeApp:assembleRelease
+
+# iOS Framework
+./gradlew composeApp:embedAndSignAppleFrameworkForXcode
+
+# Clean Project
+./gradlew clean
 ```
 
-#### iOS
+## 🏛️ Architecture Details
 
-**Option 1: Using Android Studio**
-- Select the `iosApp` run configuration
-- Click the "Run" button
+### MVVM Pattern
+- **Model**: Data classes with kotlinx.serialization
+- **View**: Compose UI screens
+- **ViewModel**: StateFlow-based state management with BaseViewModel
 
-**Option 2: Using Xcode**
-- Open `iosApp/iosApp.xcodeproj` in Xcode
-- Select a simulator or device
-- Press `Cmd+R` to run
-
-## 🏛️ Architecture
-
-This project follows **Clean Architecture** principles with clear separation of concerns:
+### BaseViewModel Features
+- Automatic loading state management
+- Global error handling
+- Success message display
+- Coroutine-based operation execution
+- Comprehensive logging
 
 ### Data Layer
-- **Models**: Data classes representing API responses
-- **Network**: Ktor HTTP client configuration and API services
-- **Repository**: Data repository implementing business logic
+- **Repository Pattern**: Centralized data management
+- **API Service**: Ktor-based HTTP client
+- **Models**: Serializable data classes for Users, Posts, Comments, Albums, Photos, and Todos
 
-### Presentation Layer
-- **ViewModels**: Business logic and state management
-- **Screens**: Compose UI screens
-- **State Management**: StateFlow for reactive UI updates
+### Navigation
+- **Type-safe routes** using sealed classes
+- **Kotlinx Serialization** for route parameters
+- **Navigation Compose** for declarative navigation
 
-### Key Components
+## 📱 Features Overview
 
-#### UserViewModel
-Manages user data state and handles user interactions:
-- Fetches users from API
-- Manages loading states
-- Handles user selection
-- Provides error handling
+### Screens
+1. **Main Screen**: Navigation hub with options to view Users and Posts
+2. **User List Screen**: Display list of users from JSONPlaceholder API
+3. **Posts List Screen**: Display list of posts with full CRUD operations
 
-#### UserRepository
-Centralized data management:
-- API calls using Ktor client
-- Data caching and state management
-- Error handling and retry logic
+### Core Functionality
+- **Network calls** with proper error handling
+- **Loading states** with BaseViewModel
+- **Cross-platform logging** with structured output
+- **Material 3 theming** with light/dark mode support
+- **Type-safe navigation** between screens
 
-#### Logger
-Cross-platform logging utility using Napier:
-- Unified logging across Android and iOS
-- Different log levels (Debug, Info, Warning, Error)
-- Platform-specific log output
+## 🎨 UI/UX Features
 
-## 🔧 Configuration
-
-### API Configuration
-The project uses [JSONPlaceholder](https://jsonplaceholder.typicode.com/) as a demo API. To change the API:
-
-1. Update the base URL in your API service
-2. Modify data models to match your API response
-3. Update repository methods accordingly
-
-### Logging Configuration
-Logging is initialized in the App composable and provides cross-platform logging:
-- **Android**: Logs appear in Logcat
-- **iOS**: Logs appear in Xcode console
+- **GitHub-inspired color scheme** for both light and dark themes
+- **Material 3 components** throughout the app
+- **Responsive design** for different screen sizes
+- **Loading indicators** and error states
+- **Clean, modern interface**
 
 ## 🧪 Testing
 
-### Running Tests
 ```bash
-# Run all tests
-./gradlew test
+# Run common tests
+./gradlew composeApp:testDebugUnitTest
 
-# Run Android tests specifically
-./gradlew :composeApp:testDebugUnitTest
-
-# Run iOS tests
-./gradlew :composeApp:iosSimulatorArm64Test
+# Run Android tests
+./gradlew composeApp:connectedAndroidTest
 ```
 
-## 📦 Dependencies Management
+## 📦 Dependencies
 
-Dependencies are managed in `gradle/libs.versions.toml` using Gradle Version Catalogs:
+Key dependencies are managed through Gradle Version Catalogs:
+- Compose Multiplatform BOM
+- Ktor for networking
+- Kotlinx Serialization for JSON
+- Napier for logging
+- Navigation Compose for routing
+- Material 3 for theming
 
-- All versions are centralized in the `[versions]` section
-- Libraries are defined in the `[libraries]` section
-- Plugins are defined in the `[plugins]` section
+## 🚀 Deployment
 
-To update dependencies:
-1. Update version numbers in `libs.versions.toml`
-2. Sync the project
-3. Test thoroughly on both platforms
+### Android
+1. Configure signing in `android` block
+2. Build release APK: `./gradlew assembleRelease`
+3. Deploy to Google Play Store
+
+### iOS
+1. Configure provisioning profiles in Xcode
+2. Archive and export IPA
+3. Deploy to App Store Connect
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
-## 📝 License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔗 Resources
+## 🙏 Acknowledgments
 
-- [Kotlin Multiplatform Documentation](https://kotlinlang.org/docs/multiplatform.html)
-- [Compose Multiplatform Documentation](https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-multiplatform-getting-started.html)
-- [Ktor Documentation](https://ktor.io/docs/)
-- [kotlinx.serialization Guide](https://kotlinlang.org/docs/serialization.html)
-- [Napier GitHub](https://github.com/AAkira/Napier)
-
-## 📞 Support
-
-For questions, issues, or contributions, please:
-- Open an issue on GitHub
-- Check existing documentation
-- Review the codebase for examples
-
----
-
-**Happy coding! 🎉**
+- [Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform)
+- [Ktor](https://ktor.io/)
+- [JSONPlaceholder](https://jsonplaceholder.typicode.com/) for demo API
+- [Napier](https://github.com/AAkira/Napier) for cross-platform logging
+- Material Design 3 and GitHub design inspiration
