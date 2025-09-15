@@ -3,6 +3,9 @@ package com.kaelmoreno.compose.composemultiplatformbase.presentation.screen
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +18,7 @@ import com.kaelmoreno.compose.composemultiplatformbase.data.model.User
 import com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel.UserViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserListScreen(
     onBack: () -> Unit,
@@ -32,7 +36,7 @@ fun UserListScreen(
 
     LaunchedEffect(Unit) {
         Logger.i("UserListScreen initialized", "UI")
-        viewModel.loadUsers() // Call loadUsers from the UI instead of ViewModel init
+        viewModel.loadUsers()
     }
 
     // Clear success message after showing it
@@ -49,92 +53,107 @@ fun UserListScreen(
     }
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
+        modifier = modifier.fillMaxSize()
     ) {
-        // Header without back button
-        Text(
-            text = "Users",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
+        // TopAppBar with proper Material Icons
+        TopAppBar(
+            title = {
+                Text("Users")
+            },
+            navigationIcon = {
+                IconButton(onClick = {
+                    Logger.d("Back button pressed", "UI")
+                    onBack()
+                }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back"
+                    )
+                }
+            },
+            actions = {
+                // Refresh action in app bar
+                IconButton(onClick = { viewModel.loadUsers() }) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Refresh"
+                    )
+                }
+            }
         )
 
-        // Success message snackbar
-        successMessage?.let { message ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            ) {
-                Text(
-                    text = message,
-                    modifier = Modifier.padding(16.dp),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-        }
-
-        when {
-            isLoading -> {
-                LoadingContent()
-            }
-            error != null -> {
-                ErrorContent(
-                    error = error!!,
-                    onRetry = { viewModel.retry() }
-                )
-            }
-            uiState.users.isEmpty() -> {
-                EmptyContent(onRefresh = { viewModel.loadUsers() })
-            }
-            else -> {
-                // Put everything in a single LazyColumn for proper scrolling
-                LazyColumn(
-                    modifier = Modifier.weight(1f)
+        // Content with padding
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            // Success message snackbar
+            successMessage?.let { message ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
                 ) {
-                    // Header with user count and refresh
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                    Text(
+                        text = message,
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+
+            when {
+                isLoading -> {
+                    LoadingContent()
+                }
+                error != null -> {
+                    ErrorContent(
+                        error = error!!,
+                        onRetry = { viewModel.retry() }
+                    )
+                }
+                uiState.users.isEmpty() -> {
+                    EmptyContent(onRefresh = { viewModel.loadUsers() })
+                }
+                else -> {
+                    // Put everything in a single LazyColumn for proper scrolling
+                    LazyColumn(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        // Header with user count
+                        item {
                             Text(
                                 text = "${uiState.users.size} users loaded",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 8.dp)
                             )
-                            TextButton(onClick = { viewModel.loadUsers() }) {
-                                Text("Refresh")
-                            }
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
 
-                    // User list items with details shown below each clicked item
-                    items(uiState.users) { user ->
-                        UserListItem(
-                            user = user,
-                            onClick = {
-                                if (uiState.selectedUser?.id == user.id) {
-                                    viewModel.clearSelectedUser() // Close if same user clicked
-                                } else {
-                                    viewModel.selectUser(user) // Select new user
-                                }
-                            }
-                        )
-
-                        // Show details immediately below this user card if it's selected
-                        if (uiState.selectedUser?.id == user.id) {
-                            UserDetailCard(
+                        // User list items with details shown below each clicked item
+                        items(uiState.users) { user ->
+                            UserListItem(
                                 user = user,
-                                onDismiss = { viewModel.clearSelectedUser() }
+                                onClick = {
+                                    if (uiState.selectedUser?.id == user.id) {
+                                        viewModel.clearSelectedUser() // Close if same user clicked
+                                    } else {
+                                        viewModel.selectUser(user) // Select new user
+                                    }
+                                }
                             )
+
+                            // Show details immediately below this user card if it's selected
+                            if (uiState.selectedUser?.id == user.id) {
+                                UserDetailCard(
+                                    user = user,
+                                    onDismiss = { viewModel.clearSelectedUser() }
+                                )
+                            }
                         }
                     }
                 }

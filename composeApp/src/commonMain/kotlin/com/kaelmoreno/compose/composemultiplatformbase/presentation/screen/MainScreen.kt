@@ -1,6 +1,10 @@
 package com.kaelmoreno.compose.composemultiplatformbase.presentation.screen
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Article
+import androidx.compose.material.icons.filled.Article
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -60,7 +64,7 @@ fun MainScreen(
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                // Users Button
+                // Users Button with Material Icon
                 Button(
                     onClick = {
                         Logger.d("Navigating to Users screen", "MainScreen")
@@ -68,10 +72,15 @@ fun MainScreen(
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("👤 View Users")
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Users",
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text("View Users")
                 }
 
-                // Posts Button
+                // Posts Button with Material Icon
                 Button(
                     onClick = {
                         Logger.d("Navigating to Posts screen", "MainScreen")
@@ -79,7 +88,12 @@ fun MainScreen(
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("📄 View Posts")
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Article,
+                        contentDescription = "Posts",
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text("View Posts")
                 }
 
                 HorizontalDivider(

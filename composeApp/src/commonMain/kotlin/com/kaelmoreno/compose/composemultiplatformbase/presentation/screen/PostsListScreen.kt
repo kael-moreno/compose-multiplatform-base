@@ -3,6 +3,9 @@ package com.kaelmoreno.compose.composemultiplatformbase.presentation.screen
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +18,7 @@ import com.kaelmoreno.compose.composemultiplatformbase.data.model.Post
 import com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel.PostsViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostsListScreen(
     onBack: () -> Unit,
@@ -44,91 +48,106 @@ fun PostsListScreen(
     }
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
+        modifier = modifier.fillMaxSize()
     ) {
-        // Header without back button
-        Text(
-            text = "Posts",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
+        // TopAppBar with proper Material Icons
+        TopAppBar(
+            title = {
+                Text("Posts")
+            },
+            navigationIcon = {
+                IconButton(onClick = {
+                    Logger.d("Back button pressed", "UI")
+                    onBack()
+                }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back"
+                    )
+                }
+            },
+            actions = {
+                // Refresh action in app bar
+                IconButton(onClick = { viewModel.loadPosts() }) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Refresh"
+                    )
+                }
+            }
         )
 
-        // Success message snackbar
-        successMessage?.let { message ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            ) {
-                Text(
-                    text = message,
-                    modifier = Modifier.padding(16.dp),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-        }
-
-        when {
-            isLoading -> {
-                LoadingContent()
-            }
-            error != null -> {
-                ErrorContent(
-                    error = error!!,
-                    onRetry = { viewModel.retry() }
-                )
-            }
-            uiState.posts.isEmpty() -> {
-                EmptyContent(onRefresh = { viewModel.loadPosts() })
-            }
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.weight(1f)
+        // Content with padding
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            // Success message snackbar
+            successMessage?.let { message ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
                 ) {
-                    // Header with post count and refresh
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                    Text(
+                        text = message,
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+
+            when {
+                isLoading -> {
+                    LoadingContent()
+                }
+                error != null -> {
+                    ErrorContent(
+                        error = error!!,
+                        onRetry = { viewModel.retry() }
+                    )
+                }
+                uiState.posts.isEmpty() -> {
+                    EmptyContent(onRefresh = { viewModel.loadPosts() })
+                }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        // Header with post count
+                        item {
                             Text(
                                 text = "${uiState.posts.size} posts loaded",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 8.dp)
                             )
-                            TextButton(onClick = { viewModel.loadPosts() }) {
-                                Text("Refresh")
-                            }
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
 
-                    // Posts list items with details shown below each clicked item
-                    items(uiState.posts) { post ->
-                        PostListItem(
-                            post = post,
-                            onClick = {
-                                if (uiState.selectedPost?.id == post.id) {
-                                    viewModel.clearSelectedPost() // Close if same post clicked
-                                } else {
-                                    viewModel.selectPost(post) // Select new post
-                                }
-                            }
-                        )
-
-                        // Show details immediately below this post card if it's selected
-                        if (uiState.selectedPost?.id == post.id) {
-                            PostDetailCard(
+                        // Posts list items with details shown below each clicked item
+                        items(uiState.posts) { post ->
+                            PostListItem(
                                 post = post,
-                                onDismiss = { viewModel.clearSelectedPost() }
+                                onClick = {
+                                    if (uiState.selectedPost?.id == post.id) {
+                                        viewModel.clearSelectedPost() // Close if same post clicked
+                                    } else {
+                                        viewModel.selectPost(post) // Select new post
+                                    }
+                                }
                             )
+
+                            // Show details immediately below this post card if it's selected
+                            if (uiState.selectedPost?.id == post.id) {
+                                PostDetailCard(
+                                    post = post,
+                                    onDismiss = { viewModel.clearSelectedPost() }
+                                )
+                            }
                         }
                     }
                 }

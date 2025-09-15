@@ -46,6 +46,9 @@ kotlin {
             // Navigation dependency
             implementation(libs.androidx.navigation.compose)
 
+            // Material Icons Extended (required for Compose Multiplatform)
+            implementation(compose.materialIconsExtended)
+
             // Ktor dependencies
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
