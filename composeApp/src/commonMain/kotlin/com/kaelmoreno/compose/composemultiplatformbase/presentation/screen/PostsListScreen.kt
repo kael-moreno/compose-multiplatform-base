@@ -1,5 +1,6 @@
 package com.kaelmoreno.compose.composemultiplatformbase.presentation.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -49,6 +50,7 @@ fun PostsListScreen(
 
     Column(
         modifier = modifier.fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
         // TopAppBar with proper Material Icons
         TopAppBar(
