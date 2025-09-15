@@ -6,15 +6,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.kaelmoreno.compose.composemultiplatformbase.presentation.screen.UserListScreen
-import com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel.UserViewModel
+import com.kaelmoreno.compose.composemultiplatformbase.navigation.AppNavigation
 
 @Composable
 fun App() {
     // Initialize logger when App composable is first created
     LaunchedEffect(Unit) {
-        Logger.i("App composable initialized", "App")
+        Logger.i("App composable initialized with NavHost navigation", "App")
     }
 
     MaterialTheme {
@@ -24,9 +22,7 @@ fun App() {
                 .safeContentPadding(),
             color = MaterialTheme.colorScheme.background
         ) {
-            val userViewModel: UserViewModel = viewModel { UserViewModel() }
-            UserListScreen(
-                viewModel = userViewModel,
+            AppNavigation(
                 modifier = Modifier.fillMaxSize()
             )
         }

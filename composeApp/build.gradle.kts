@@ -43,6 +43,9 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.napier)
 
+            // Navigation dependency
+            implementation(libs.androidx.navigation.compose)
+
             // Ktor dependencies
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)

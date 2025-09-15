@@ -11,17 +11,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
-import com.kaelmoreno.compose.composemultiplatformbase.data.model.User
-import com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel.UserViewModel
+import com.kaelmoreno.compose.composemultiplatformbase.data.model.Post
+import com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel.PostsViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
-fun UserListScreen(
+fun PostsListScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Create ViewModel in the composable
-    val viewModel: UserViewModel = viewModel { UserViewModel() }
+    val viewModel: PostsViewModel = viewModel { PostsViewModel() }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -31,8 +31,8 @@ fun UserListScreen(
     val successMessage by viewModel.successMessage.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        Logger.i("UserListScreen initialized", "UI")
-        viewModel.loadUsers() // Call loadUsers from the UI instead of ViewModel init
+        Logger.i("PostsListScreen initialized", "UI")
+        viewModel.loadPosts()
     }
 
     // Clear success message after showing it
@@ -43,11 +43,6 @@ fun UserListScreen(
         }
     }
 
-    // Debug logging for UI state changes
-    LaunchedEffect(uiState.selectedUser) {
-        Logger.d("UI State selectedUser changed to: ${uiState.selectedUser?.name}", "UI")
-    }
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -55,7 +50,7 @@ fun UserListScreen(
     ) {
         // Header without back button
         Text(
-            text = "Users",
+            text = "Posts",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 16.dp)
@@ -89,15 +84,14 @@ fun UserListScreen(
                     onRetry = { viewModel.retry() }
                 )
             }
-            uiState.users.isEmpty() -> {
-                EmptyContent(onRefresh = { viewModel.loadUsers() })
+            uiState.posts.isEmpty() -> {
+                EmptyContent(onRefresh = { viewModel.loadPosts() })
             }
             else -> {
-                // Put everything in a single LazyColumn for proper scrolling
                 LazyColumn(
                     modifier = Modifier.weight(1f)
                 ) {
-                    // Header with user count and refresh
+                    // Header with post count and refresh
                     item {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -105,35 +99,35 @@ fun UserListScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "${uiState.users.size} users loaded",
+                                text = "${uiState.posts.size} posts loaded",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            TextButton(onClick = { viewModel.loadUsers() }) {
+                            TextButton(onClick = { viewModel.loadPosts() }) {
                                 Text("Refresh")
                             }
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                     }
 
-                    // User list items with details shown below each clicked item
-                    items(uiState.users) { user ->
-                        UserListItem(
-                            user = user,
+                    // Posts list items with details shown below each clicked item
+                    items(uiState.posts) { post ->
+                        PostListItem(
+                            post = post,
                             onClick = {
-                                if (uiState.selectedUser?.id == user.id) {
-                                    viewModel.clearSelectedUser() // Close if same user clicked
+                                if (uiState.selectedPost?.id == post.id) {
+                                    viewModel.clearSelectedPost() // Close if same post clicked
                                 } else {
-                                    viewModel.selectUser(user) // Select new user
+                                    viewModel.selectPost(post) // Select new post
                                 }
                             }
                         )
 
-                        // Show details immediately below this user card if it's selected
-                        if (uiState.selectedUser?.id == user.id) {
-                            UserDetailCard(
-                                user = user,
-                                onDismiss = { viewModel.clearSelectedUser() }
+                        // Show details immediately below this post card if it's selected
+                        if (uiState.selectedPost?.id == post.id) {
+                            PostDetailCard(
+                                post = post,
+                                onDismiss = { viewModel.clearSelectedPost() }
                             )
                         }
                     }
@@ -154,7 +148,7 @@ private fun LoadingContent() {
         ) {
             CircularProgressIndicator()
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Loading users...")
+            Text("Loading posts...")
         }
     }
 }
@@ -202,7 +196,7 @@ private fun EmptyContent(onRefresh: () -> Unit) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("No users found")
+            Text("No posts found")
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = onRefresh) {
                 Text("Refresh")
@@ -212,8 +206,8 @@ private fun EmptyContent(onRefresh: () -> Unit) {
 }
 
 @Composable
-private fun UserListItem(
-    user: User,
+private fun PostListItem(
+    post: Post,
     onClick: () -> Unit
 ) {
     Card(
@@ -221,7 +215,7 @@ private fun UserListItem(
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         onClick = {
-            Logger.d("User card clicked: ${user.name}", "UI")
+            Logger.d("Post card clicked: ${post.title}", "UI")
             onClick()
         }
     ) {
@@ -229,17 +223,21 @@ private fun UserListItem(
             modifier = Modifier.padding(16.dp)
         ) {
             Text(
-                text = user.name,
+                text = post.title,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                maxLines = 2
             )
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "@${user.username}",
+                text = post.body,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 3
             )
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = user.email,
+                text = "Post ID: ${post.id} • User ID: ${post.userId}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -248,8 +246,8 @@ private fun UserListItem(
 }
 
 @Composable
-private fun UserDetailCard(
-    user: User,
+private fun PostDetailCard(
+    post: Post,
     onDismiss: () -> Unit
 ) {
     Card(
@@ -267,7 +265,7 @@ private fun UserDetailCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "User Details",
+                    text = "Post Details",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -283,32 +281,36 @@ private fun UserDetailCard(
             )
 
             Text(
-                text = "Name: ${user.name}",
-                style = MaterialTheme.typography.bodyMedium
+                text = "Title:",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold
             )
             Text(
-                text = "Username: @${user.username}",
-                style = MaterialTheme.typography.bodyMedium
+                text = post.title,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Text(
+                text = "Content:",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold
             )
             Text(
-                text = "Email: ${user.email}",
-                style = MaterialTheme.typography.bodyMedium
+                text = post.body,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Text(
+                text = "Post ID: ${post.id}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "Phone: ${user.phone}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = "Website: ${user.website}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = "Company: ${user.company.name}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = "Address: ${user.address.street}, ${user.address.city}",
-                style = MaterialTheme.typography.bodyMedium
+                text = "User ID: ${post.userId}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
