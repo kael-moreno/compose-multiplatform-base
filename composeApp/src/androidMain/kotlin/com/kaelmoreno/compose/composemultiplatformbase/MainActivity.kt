@@ -12,6 +12,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
+        // Initialize logger
+        Logger.initialize()
+        Logger.i("MainActivity created", "Android")
+
         setContent {
             App()
         }

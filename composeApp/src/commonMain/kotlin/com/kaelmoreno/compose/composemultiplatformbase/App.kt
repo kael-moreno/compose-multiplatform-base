@@ -22,6 +22,12 @@ import composemultiplatformbase.composeapp.generated.resources.compose_multiplat
 @Composable
 @Preview
 fun App() {
+    // Initialize logger when App composable is first created
+    LaunchedEffect(Unit) {
+        Logger.initialize()
+        Logger.i("App composable initialized", "App")
+    }
+
     MaterialTheme {
         var showContent by remember { mutableStateOf(false) }
         Column(
@@ -31,11 +37,15 @@ fun App() {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Button(onClick = { showContent = !showContent }) {
+            Button(onClick = {
+                showContent = !showContent
+                Logger.d("Button clicked, showContent: $showContent", "UI")
+            }) {
                 Text("Click me!")
             }
             AnimatedVisibility(showContent) {
                 val greeting = remember { Greeting().greet() }
+                Logger.i("Content shown with greeting: $greeting", "UI")
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
