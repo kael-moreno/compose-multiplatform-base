@@ -1,6 +1,5 @@
 package com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
 import com.kaelmoreno.compose.composemultiplatformbase.data.model.User
@@ -12,59 +11,43 @@ import kotlinx.coroutines.launch
 
 data class UserUiState(
     val users: List<User> = emptyList(),
-    val isLoading: Boolean = false,
-    val error: String? = null,
     val selectedUser: User? = null
 )
 
-class UserViewModel : ViewModel() {
+class UserViewModel : BaseViewModel() {
 
     private val repository = Repository()
 
-    // Simple StateFlow that we manually update
+    // UI-specific state (no loading/error needed)
     private val _uiState = MutableStateFlow(UserUiState())
     val uiState: StateFlow<UserUiState> = _uiState.asStateFlow()
 
     init {
         Logger.i("UserViewModel initialized", "UserViewModel")
 
-        // Observe repository changes and update our state
+        // Observe repository data changes
         viewModelScope.launch {
             repository.users.collect { users ->
                 Logger.d("Repository users updated: ${users.size} users", "UserViewModel")
                 _uiState.value = _uiState.value.copy(users = users)
             }
         }
-
-        viewModelScope.launch {
-            repository.isLoadingUsers.collect { isLoading ->
-                Logger.d("Repository loading state: $isLoading", "UserViewModel")
-                _uiState.value = _uiState.value.copy(isLoading = isLoading)
-            }
-        }
-
-        viewModelScope.launch {
-            repository.userError.collect { error ->
-                Logger.d("Repository error: $error", "UserViewModel")
-                _uiState.value = _uiState.value.copy(error = error)
-            }
-        }
-
-        // Don't call loadUsers() here anymore - let the UI control when to load
     }
 
     fun loadUsers() {
         Logger.i("Loading users requested", "UserViewModel")
-        viewModelScope.launch {
-            repository.fetchUsers()
-        }
+        executeOperationWithResult(
+            operation = { repository.fetchUsers() },
+            onSuccess = { users ->
+                Logger.i("Successfully loaded ${users.size} users", "UserViewModel")
+                setSuccessMessage("Users loaded successfully")
+            }
+        )
     }
 
     fun selectUser(user: User) {
         Logger.d("User selected: ${user.name}", "UserViewModel")
-        Logger.d("Current selected user before: ${_uiState.value.selectedUser?.name}", "UserViewModel")
         _uiState.value = _uiState.value.copy(selectedUser = user)
-        Logger.d("Current selected user after: ${_uiState.value.selectedUser?.name}", "UserViewModel")
     }
 
     fun clearSelectedUser() {
@@ -72,14 +55,11 @@ class UserViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(selectedUser = null)
     }
 
-    fun retryLoadUsers() {
+    override fun retry() {
         Logger.i("Retrying to load users", "UserViewModel")
-        repository.clearUserError()
+        clearError()
         loadUsers()
     }
 
-    fun clearError() {
-        Logger.d("Clearing error", "UserViewModel")
-        repository.clearUserError()
-    }
+    fun retryLoadUsers() = retry() // Alias for backward compatibility
 }
