@@ -8,6 +8,7 @@ import org.koin.dsl.module
  */
 val appModules = module {
     includes(
+        platformModule,
         dataModule,
         presentationModule
     )

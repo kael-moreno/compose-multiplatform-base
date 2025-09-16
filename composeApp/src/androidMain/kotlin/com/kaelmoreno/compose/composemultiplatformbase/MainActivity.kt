@@ -13,18 +13,15 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        // Initialize AndroidContextProvider with application context
-        AndroidContextProvider.initialize(this)
-
-        // Initialize Koin
+        // Initialize Koin with Android context - this replaces AndroidContextProvider
         startKoin {
-            androidContext(this@MainActivity)
+            androidContext(this@MainActivity) // Koin will manage the Android Context
             modules(appModules)
         }
 
         // Initialize logger
         Logger.initialize()
-        Logger.i("MainActivity created with Koin initialized", "Android")
+        Logger.i("MainActivity created with Koin managing Android Context", "Android")
 
         setContent {
             App()

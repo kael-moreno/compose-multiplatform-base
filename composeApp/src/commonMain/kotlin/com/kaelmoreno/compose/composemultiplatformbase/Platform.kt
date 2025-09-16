@@ -10,5 +10,3 @@ interface Platform {
     val deviceManufacturer: String
     val deviceModel: String
 }
-
-expect fun getPlatform(): Platform

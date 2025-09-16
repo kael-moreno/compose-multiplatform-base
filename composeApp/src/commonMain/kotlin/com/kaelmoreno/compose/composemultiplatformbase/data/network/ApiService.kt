@@ -1,13 +1,13 @@
 package com.kaelmoreno.compose.composemultiplatformbase.data.network
 
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
-import com.kaelmoreno.compose.composemultiplatformbase.getPlatform
+import com.kaelmoreno.compose.composemultiplatformbase.Platform
 import com.kaelmoreno.compose.composemultiplatformbase.data.model.*
 import kotlinx.coroutines.flow.Flow
 
-class ApiService {
-
-    private val platform = getPlatform()
+class ApiService(
+    private val platform: Platform
+) {
 
     // User endpoints
     fun getUsers(): Flow<ResponseHandler<List<User>>> {

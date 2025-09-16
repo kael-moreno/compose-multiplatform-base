@@ -16,7 +16,8 @@ class IOSPlatform(
     override val name: String = UIDevice.currentDevice.systemName() + " " + UIDevice.currentDevice.systemVersion
 }
 
-actual fun getPlatform(): Platform {
+// Helper function used by the iOS platform module
+internal fun createIOSPlatform(): Platform {
     Logger.d("Creating iOS platform instance", "Platform")
     val device = UIDevice.currentDevice
     val bundle = NSBundle.mainBundle
