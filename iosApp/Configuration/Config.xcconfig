@@ -1,7 +1,14 @@
-TEAM_ID=
+// iOS Configuration - reads versions from centralized libs.versions.toml
+// This file is used by Xcode to set build variables
 
-PRODUCT_NAME=Compose Multiplatform Base
-PRODUCT_BUNDLE_IDENTIFIER=com.kaelmoreno.compose.composemultiplatformbase.ComposeMultiplatformBase$(TEAM_ID)
+// Read version from gradle/libs.versions.toml via script
+#include? "$(SRCROOT)/sync-version.xcconfig"
 
-CURRENT_PROJECT_VERSION=1
-MARKETING_VERSION=1.0
+// Set default values if script-generated file doesn't exist
+APP_VERSION_NAME = 1.0.0
+APP_VERSION_CODE = 1
+
+// Bundle configuration
+PRODUCT_BUNDLE_IDENTIFIER = com.kaelmoreno.compose.composemultiplatformbase
+DEVELOPMENT_TEAM =
+CODE_SIGN_STYLE = Automatic
