@@ -7,6 +7,7 @@ import com.kaelmoreno.compose.composemultiplatformbase.data.repository.Repositor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class PostsUiState(
@@ -22,13 +23,17 @@ class PostsViewModel : BaseViewModel() {
     private val _uiState = MutableStateFlow(PostsUiState())
     val uiState: StateFlow<PostsUiState> = _uiState.asStateFlow()
 
+    init {
+        Logger.i("PostsViewModel initialized", "PostsViewModel")
+    }
+
     fun loadPosts() {
         Logger.i("Loading posts requested", "PostsViewModel")
         executeOperationWithFlow(
             operation = { repository.fetchPosts() },
             onSuccess = { posts ->
                 Logger.i("Successfully loaded ${posts.size} posts", "PostsViewModel")
-                _uiState.value = _uiState.value.copy(posts = posts)
+                _uiState.update { it.copy(posts = posts) }
                 setSuccessMessage("Posts loaded successfully")
             }
         )
@@ -36,12 +41,12 @@ class PostsViewModel : BaseViewModel() {
 
     fun selectPost(post: Post) {
         Logger.d("Post selected: ${post.title}", "PostsViewModel")
-        _uiState.value = _uiState.value.copy(selectedPost = post)
+        _uiState.update { it.copy(selectedPost = post) }
     }
 
     fun clearSelectedPost() {
         Logger.d("Clearing selected post", "PostsViewModel")
-        _uiState.value = _uiState.value.copy(selectedPost = null)
+        _uiState.update { it.copy(selectedPost = null) }
     }
 
     override fun retry() {
@@ -49,4 +54,6 @@ class PostsViewModel : BaseViewModel() {
         clearError()
         loadPosts()
     }
+
+    fun retryLoadPosts() = retry() // Alias for backward compatibility
 }

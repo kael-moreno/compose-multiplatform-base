@@ -7,6 +7,7 @@ import com.kaelmoreno.compose.composemultiplatformbase.data.repository.Repositor
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class UserUiState(
@@ -22,13 +23,17 @@ class UserViewModel : BaseViewModel() {
     private val _uiState = MutableStateFlow(UserUiState())
     val uiState: StateFlow<UserUiState> = _uiState.asStateFlow()
 
+    init {
+        Logger.i("UserViewModel initialized", "UserViewModel")
+    }
+
     fun loadUsers() {
         Logger.i("Loading users requested", "UserViewModel")
         executeOperationWithFlow(
             operation = { repository.fetchUsers() },
             onSuccess = { users ->
                 Logger.i("Successfully loaded ${users.size} users", "UserViewModel")
-                _uiState.value = _uiState.value.copy(users = users)
+                _uiState.update { it.copy(users = users) }
                 setSuccessMessage("Users loaded successfully")
             }
         )
@@ -36,12 +41,12 @@ class UserViewModel : BaseViewModel() {
 
     fun selectUser(user: User) {
         Logger.d("User selected: ${user.name}", "UserViewModel")
-        _uiState.value = _uiState.value.copy(selectedUser = user)
+        _uiState.update { it.copy(selectedUser = user) }
     }
 
     fun clearSelectedUser() {
         Logger.d("Clearing selected user", "UserViewModel")
-        _uiState.value = _uiState.value.copy(selectedUser = null)
+        _uiState.update { it.copy(selectedUser = null) }
     }
 
     override fun retry() {

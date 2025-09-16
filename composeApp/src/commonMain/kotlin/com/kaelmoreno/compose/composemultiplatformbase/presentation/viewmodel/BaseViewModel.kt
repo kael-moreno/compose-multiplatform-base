@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
@@ -46,63 +47,108 @@ abstract class BaseViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 Logger.d("Starting flow operation", logTag)
-                _error.value = null
+                _error.update { null }
 
                 operation().collect { response ->
                     when (response) {
                         is ResponseHandler.Loading -> {
                             if (showLoading) {
-                                _isLoading.value = true
+                                Logger.d("Operation loading", logTag)
+                                _isLoading.update { true }
                             }
-                            Logger.d("Loading...", logTag)
                         }
                         is ResponseHandler.Success -> {
                             if (showLoading) {
-                                _isLoading.value = false
+                                _isLoading.update { false }
                             }
-                            response.result?.let { data ->
-                                Logger.d("Flow operation completed successfully", logTag)
-                                onSuccess(data)
-                            }
+                            Logger.d("Operation completed successfully", logTag)
+                            onSuccess(response.result!!)
                         }
                         is ResponseHandler.Error -> {
                             if (showLoading) {
-                                _isLoading.value = false
+                                _isLoading.update { false }
                             }
-                            val errorMessage = response.apiError?.error?.message ?: "API error occurred"
-                            Logger.e("Flow operation failed: $errorMessage", null, logTag)
-                            _error.value = errorMessage
-                            onError?.invoke(errorMessage)
+                            val errorMessage = response.apiError?.error?.message ?: "API Error"
+                            Logger.e("Operation failed: $errorMessage", tag = logTag)
+                            _error.update { errorMessage }
+                            onError?.invoke(errorMessage) ?: run {
+                                Logger.d("No custom error handler provided, using default error state", logTag)
+                            }
                         }
                         is ResponseHandler.Failure -> {
                             if (showLoading) {
-                                _isLoading.value = false
+                                _isLoading.update { false }
                             }
-                            val errorMessage = response.exception?.message ?: "Network error occurred"
-                            Logger.e("Flow operation failed", response.exception, logTag)
-                            _error.value = errorMessage
-                            onError?.invoke(errorMessage)
+                            val errorMessage = response.exception?.message ?: "Unknown error occurred"
+                            Logger.e("Operation failed with exception: $errorMessage", response.exception, logTag)
+                            _error.update { errorMessage }
+                            onError?.invoke(errorMessage) ?: run {
+                                Logger.d("No custom error handler provided, using default error state", logTag)
+                            }
                         }
                     }
                 }
-
             } catch (e: Exception) {
-                Logger.e("Flow operation execution failed", e, logTag)
-                _error.value = e.message ?: "Unknown error occurred"
-                onError?.invoke(e.message ?: "Unknown error occurred")
                 if (showLoading) {
-                    _isLoading.value = false
+                    _isLoading.update { false }
                 }
+                val errorMessage = e.message ?: "Unknown error occurred"
+                Logger.e("Flow operation failed with exception: $errorMessage", e, logTag)
+                _error.update { errorMessage }
+                onError?.invoke(errorMessage)
             }
         }
     }
 
     /**
-     * Clear the current error state
+     * Execute a simple suspend operation with automatic loading and error handling
+     * @param operation The suspend function to execute
+     * @param onSuccess Callback for successful result
+     * @param onError Optional callback for error handling
+     * @param showLoading Whether to show loading state (default: true)
+     * @param logTag Tag for logging (default: class name)
+     */
+    protected fun <T> executeOperation(
+        operation: suspend () -> T,
+        onSuccess: (T) -> Unit,
+        onError: ((String) -> Unit)? = null,
+        showLoading: Boolean = true,
+        logTag: String = this::class.simpleName ?: "BaseViewModel"
+    ) {
+        viewModelScope.launch {
+            try {
+                if (showLoading) {
+                    _isLoading.update { true }
+                }
+                _error.update { null }
+
+                Logger.d("Starting operation", logTag)
+                val result = operation()
+
+                if (showLoading) {
+                    _isLoading.update { false }
+                }
+
+                Logger.d("Operation completed successfully", logTag)
+                onSuccess(result)
+            } catch (e: Exception) {
+                if (showLoading) {
+                    _isLoading.update { false }
+                }
+                val errorMessage = e.message ?: "Unknown error occurred"
+                Logger.e("Operation failed: $errorMessage", e, tag = logTag)
+                _error.update { errorMessage }
+                onError?.invoke(errorMessage)
+            }
+        }
+    }
+
+    /**
+     * Clear the current error
      */
     fun clearError() {
         Logger.d("Clearing error", this::class.simpleName ?: "BaseViewModel")
-        _error.value = null
+        _error.update { null }
     }
 
     /**
@@ -110,7 +156,7 @@ abstract class BaseViewModel : ViewModel() {
      */
     fun clearSuccessMessage() {
         Logger.d("Clearing success message", this::class.simpleName ?: "BaseViewModel")
-        _successMessage.value = null
+        _successMessage.update { null }
     }
 
     /**
@@ -118,21 +164,21 @@ abstract class BaseViewModel : ViewModel() {
      */
     protected fun setSuccessMessage(message: String) {
         Logger.d("Setting success message: $message", this::class.simpleName ?: "BaseViewModel")
-        _successMessage.value = message
+        _successMessage.update { message }
     }
 
     /**
      * Set loading state manually if needed
      */
     protected fun setLoading(loading: Boolean) {
-        _isLoading.value = loading
+        _isLoading.update { loading }
     }
 
     /**
      * Set error state manually if needed
      */
     protected fun setError(error: String?) {
-        _error.value = error
+        _error.update { error }
     }
 
     /**
