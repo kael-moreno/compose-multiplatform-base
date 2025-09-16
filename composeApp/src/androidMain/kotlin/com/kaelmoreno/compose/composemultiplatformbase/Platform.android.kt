@@ -31,23 +31,15 @@ actual fun getPlatform(): Platform {
     )
 }
 
-// Overloaded function for when context is available
-fun getPlatform(context: Context): Platform {
-    Logger.d("Creating Android platform instance with context", "Platform")
-    return AndroidPlatform(
-        deviceUDID = getDeviceUDID(context),
-        fcmKey = "", // This should be set from Firebase configuration when available
-        appVersion = BuildConfig.VERSION_NAME,
-        deviceOS = "Android",
-        deviceOSVersion = Build.VERSION.RELEASE,
-        deviceManufacturer = Build.MANUFACTURER,
-        deviceModel = Build.MODEL
-    )
-}
-
 private fun getDeviceUDID(): String {
-    // Fallback when no context available
-    return UUID.randomUUID().toString()
+    // Try to get context from AndroidContextProvider first
+    val context = AndroidContextProvider.getContext()
+    return if (context != null) {
+        getDeviceUDID(context)
+    } else {
+        Logger.w("AndroidContextProvider not initialized, using random UUID fallback", "Platform")
+        UUID.randomUUID().toString()
+    }
 }
 
 @SuppressLint("HardwareIds")
@@ -56,8 +48,8 @@ private fun getDeviceUDID(context: Context): String {
         // Get the real Android ID
         Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
             ?: UUID.randomUUID().toString()
-    } catch (e: Exception) {
-        Logger.w("Failed to get Android ID, using random UUID", "Platform")
+    } catch (exception: Exception) {
+        Logger.w("Failed to get Android ID: ${exception.message}, using random UUID", "Platform")
         UUID.randomUUID().toString()
     }
 }

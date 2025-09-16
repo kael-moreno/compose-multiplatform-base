@@ -31,7 +31,7 @@ object NetworkClient {
                     com.kaelmoreno.compose.composemultiplatformbase.Logger.d(message, "Ktor")
                 }
             }
-            level = LogLevel.INFO
+            level = LogLevel.ALL
         }
 
         expectSuccess = false
