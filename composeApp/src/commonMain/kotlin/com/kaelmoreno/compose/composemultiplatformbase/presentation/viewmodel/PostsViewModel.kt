@@ -36,7 +36,7 @@ class PostsViewModel : BaseViewModel() {
 
     fun loadPosts() {
         Logger.i("Loading posts requested", "PostsViewModel")
-        executeOperationWithResult(
+        executeOperationWithFlow(
             operation = { repository.fetchPosts() },
             onSuccess = { posts ->
                 Logger.i("Successfully loaded ${posts.size} posts", "PostsViewModel")
@@ -47,7 +47,7 @@ class PostsViewModel : BaseViewModel() {
 
     fun loadPostsByUser(userId: Int) {
         Logger.i("Loading posts for user $userId", "PostsViewModel")
-        executeOperationWithResult(
+        executeOperationWithFlow(
             operation = { repository.fetchPostsByUser(userId) },
             onSuccess = { posts ->
                 Logger.i("Successfully loaded ${posts.size} posts for user $userId", "PostsViewModel")

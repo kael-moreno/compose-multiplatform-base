@@ -3,6 +3,8 @@ package com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
+import com.kaelmoreno.compose.composemultiplatformbase.data.network.ResponseHandler
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,84 +29,67 @@ abstract class BaseViewModel : ViewModel() {
     val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
 
     /**
-     * Execute an operation with automatic loading and error handling
-     * @param operation The suspend function to execute
-     * @param onSuccess Optional callback for successful completion
-     * @param onError Optional callback for error handling
-     * @param showLoading Whether to show loading state (default: true)
-     * @param logTag Tag for logging (default: class name)
-     */
-    protected fun executeOperation(
-        operation: suspend () -> Unit,
-        onSuccess: (() -> Unit)? = null,
-        onError: ((Throwable) -> Unit)? = null,
-        showLoading: Boolean = true,
-        logTag: String = this::class.simpleName ?: "BaseViewModel"
-    ) {
-        viewModelScope.launch {
-            try {
-                if (showLoading) {
-                    _isLoading.value = true
-                }
-                _error.value = null
-
-                Logger.d("Starting operation", logTag)
-                operation()
-                Logger.d("Operation completed successfully", logTag)
-
-                onSuccess?.invoke()
-
-            } catch (e: Exception) {
-                Logger.e("Operation failed", e, logTag)
-                _error.value = e.message ?: "Unknown error occurred"
-                onError?.invoke(e)
-            } finally {
-                if (showLoading) {
-                    _isLoading.value = false
-                }
-            }
-        }
-    }
-
-    /**
-     * Execute an operation that returns a Result with automatic loading and error handling
-     * @param operation The suspend function that returns Result<T>
+     * Execute an operation that returns a Flow<ResponseHandler<T>> with automatic loading and error handling
+     * @param operation The suspend function that returns Flow<ResponseHandler<T>>
      * @param onSuccess Callback for successful result
      * @param onError Optional callback for error handling
      * @param showLoading Whether to show loading state (default: true)
      * @param logTag Tag for logging (default: class name)
      */
-    protected fun <T> executeOperationWithResult(
-        operation: suspend () -> Result<T>,
+    protected fun <T> executeOperationWithFlow(
+        operation: suspend () -> Flow<ResponseHandler<T>>,
         onSuccess: (T) -> Unit,
-        onError: ((Throwable) -> Unit)? = null,
+        onError: ((String) -> Unit)? = null,
         showLoading: Boolean = true,
         logTag: String = this::class.simpleName ?: "BaseViewModel"
     ) {
         viewModelScope.launch {
             try {
-                if (showLoading) {
-                    _isLoading.value = true
-                }
+                Logger.d("Starting flow operation", logTag)
                 _error.value = null
 
-                Logger.d("Starting operation with result", logTag)
-                val result = operation()
-
-                result.onSuccess { data ->
-                    Logger.d("Operation completed successfully", logTag)
-                    onSuccess(data)
-                }.onFailure { exception ->
-                    Logger.e("Operation failed", exception, logTag)
-                    _error.value = exception.message ?: "Unknown error occurred"
-                    onError?.invoke(exception)
+                operation().collect { response ->
+                    when (response) {
+                        is ResponseHandler.Loading -> {
+                            if (showLoading) {
+                                _isLoading.value = true
+                            }
+                            Logger.d("Loading...", logTag)
+                        }
+                        is ResponseHandler.Success -> {
+                            if (showLoading) {
+                                _isLoading.value = false
+                            }
+                            response.result?.let { data ->
+                                Logger.d("Flow operation completed successfully", logTag)
+                                onSuccess(data)
+                            }
+                        }
+                        is ResponseHandler.Error -> {
+                            if (showLoading) {
+                                _isLoading.value = false
+                            }
+                            val errorMessage = response.apiError?.error?.message ?: "API error occurred"
+                            Logger.e("Flow operation failed: $errorMessage", null, logTag)
+                            _error.value = errorMessage
+                            onError?.invoke(errorMessage)
+                        }
+                        is ResponseHandler.Failure -> {
+                            if (showLoading) {
+                                _isLoading.value = false
+                            }
+                            val errorMessage = response.exception?.message ?: "Network error occurred"
+                            Logger.e("Flow operation failed", response.exception, logTag)
+                            _error.value = errorMessage
+                            onError?.invoke(errorMessage)
+                        }
+                    }
                 }
 
             } catch (e: Exception) {
-                Logger.e("Operation execution failed", e, logTag)
+                Logger.e("Flow operation execution failed", e, logTag)
                 _error.value = e.message ?: "Unknown error occurred"
-                onError?.invoke(e)
-            } finally {
+                onError?.invoke(e.message ?: "Unknown error occurred")
                 if (showLoading) {
                     _isLoading.value = false
                 }

@@ -36,7 +36,7 @@ class UserViewModel : BaseViewModel() {
 
     fun loadUsers() {
         Logger.i("Loading users requested", "UserViewModel")
-        executeOperationWithResult(
+        executeOperationWithFlow(
             operation = { repository.fetchUsers() },
             onSuccess = { users ->
                 Logger.i("Successfully loaded ${users.size} users", "UserViewModel")

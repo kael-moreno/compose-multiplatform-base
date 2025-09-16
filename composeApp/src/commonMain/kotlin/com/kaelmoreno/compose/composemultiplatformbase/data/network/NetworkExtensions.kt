@@ -1,5 +1,6 @@
 package com.kaelmoreno.compose.composemultiplatformbase.data.network
 
+import com.kaelmoreno.compose.composemultiplatformbase.Platform
 import io.ktor.client.call.body
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.delete
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 
 fun HttpRequestBuilder.addDefaults(platform: Platform) {
-
     // We set headers here from platform
     headers {
         append(HttpHeaders.ContentType, "application/json")
@@ -34,7 +34,6 @@ fun HttpRequestBuilder.addDefaults(platform: Platform) {
             remove("Authorization")
         else
             append("Authorization", platform.apiKey!!)
-
     }
 }
 
@@ -46,10 +45,10 @@ inline fun <reified T> enqueue(
     vararg query: Pair<String, String> = emptyArray(),
     crossinline onSuccessResult: (headers: Headers, result: T) -> T
 ): Flow<ResponseHandler<T>> {
-    val client = httpClient(platform)
+    val client = NetworkClient.httpClient
     val json = Json { ignoreUnknownKeys = true }
     return flow {
-        this.emit(ResponseHandler.Loading())
+        emit(ResponseHandler.Loading<T>())
 
         runCatching {
             when (httpMethod) {
@@ -110,11 +109,11 @@ inline fun <reified T> enqueue(
                     } catch (_: Exception) {
                     }
                 }
-                this.emit(ResponseHandler.Error(apiError = apiError))
+                emit(ResponseHandler.Error<T>(apiError = apiError))
             }
 
         }.onFailure {
-            this.emit(ResponseHandler.Failure(exception = it))
+            emit(ResponseHandler.Failure<T>(exception = it))
         }
     }
 }
