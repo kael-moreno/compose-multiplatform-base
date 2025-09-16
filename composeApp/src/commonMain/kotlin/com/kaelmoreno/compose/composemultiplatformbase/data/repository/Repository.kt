@@ -26,22 +26,6 @@ class Repository {
     private val _posts = MutableStateFlow<List<Post>>(emptyList())
     val posts: StateFlow<List<Post>> = _posts.asStateFlow()
 
-    // Comments State Management (only data, no loading/error)
-    private val _comments = MutableStateFlow<List<Comment>>(emptyList())
-    val comments: StateFlow<List<Comment>> = _comments.asStateFlow()
-
-    // Albums State Management (only data, no loading/error)
-    private val _albums = MutableStateFlow<List<Album>>(emptyList())
-    val albums: StateFlow<List<Album>> = _albums.asStateFlow()
-
-    // Photos State Management (only data, no loading/error)
-    private val _photos = MutableStateFlow<List<Photo>>(emptyList())
-    val photos: StateFlow<List<Photo>> = _photos.asStateFlow()
-
-    // Todos State Management (only data, no loading/error)
-    private val _todos = MutableStateFlow<List<Todo>>(emptyList())
-    val todos: StateFlow<List<Todo>> = _todos.asStateFlow()
-
     // User Methods
     fun fetchUsers(): Flow<ResponseHandler<List<User>>> {
         Logger.i("Starting to fetch users", "Repository")
