@@ -9,7 +9,6 @@ interface Platform {
     val deviceOSVersion: String
     val deviceManufacturer: String
     val deviceModel: String
-    var apiKey: String?
 }
 
 expect fun getPlatform(): Platform

@@ -29,11 +29,6 @@ fun HttpRequestBuilder.addDefaults(platform: Platform) {
         append("X-Device-OS-Version", platform.deviceOSVersion)
         append("X-Device-Manufacturer", platform.deviceManufacturer)
         append("X-Device-Model", platform.deviceModel)
-
-        if (platform.apiKey.isNullOrEmpty())
-            remove("Authorization")
-        else
-            append("Authorization", platform.apiKey!!)
     }
 }
 

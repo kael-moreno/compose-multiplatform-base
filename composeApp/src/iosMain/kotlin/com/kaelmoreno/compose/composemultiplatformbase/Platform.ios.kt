@@ -10,8 +10,7 @@ class IOSPlatform(
     override val deviceOS: String,
     override val deviceOSVersion: String,
     override val deviceManufacturer: String,
-    override val deviceModel: String,
-    override var apiKey: String?
+    override val deviceModel: String
 ) : Platform {
     override val name: String = UIDevice.currentDevice.systemName() + " " + UIDevice.currentDevice.systemVersion
 }
@@ -26,7 +25,6 @@ actual fun getPlatform(): Platform {
         deviceOS = device.systemName(),
         deviceOSVersion = device.systemVersion(),
         deviceManufacturer = "Apple",
-        deviceModel = device.model(),
-        apiKey = null // Will be set after authentication
+        deviceModel = device.model()
     )
 }

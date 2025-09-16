@@ -189,9 +189,4 @@ class ApiService {
             }
         )
     }
-
-    // Helper method to update API key after authentication
-    fun updateApiKey(apiKey: String) {
-        platform.apiKey = apiKey
-    }
 }

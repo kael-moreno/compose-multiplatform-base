@@ -11,9 +11,6 @@ class Repository {
 
     private val apiService = ApiService()
 
-    // Platform instance for direct network calls
-    private val platform = getPlatform()
-
     // User Methods
     fun fetchUsers(): Flow<ResponseHandler<List<User>>> {
         Logger.i("Starting to fetch users", "Repository")
@@ -26,9 +23,4 @@ class Repository {
         return apiService.getPosts()
     }
 
-    // Helper method to update API key after authentication
-    fun updateApiKey(apiKey: String) {
-        platform.apiKey = apiKey
-        apiService.updateApiKey(apiKey)
-    }
 }

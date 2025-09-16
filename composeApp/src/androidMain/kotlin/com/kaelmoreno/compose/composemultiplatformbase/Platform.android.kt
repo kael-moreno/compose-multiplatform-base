@@ -10,8 +10,7 @@ class AndroidPlatform(
     override val deviceOS: String,
     override val deviceOSVersion: String,
     override val deviceManufacturer: String,
-    override val deviceModel: String,
-    override var apiKey: String?
+    override val deviceModel: String
 ) : Platform {
     override val name: String = "Android ${Build.VERSION.SDK_INT}"
 }
@@ -25,7 +24,6 @@ actual fun getPlatform(): Platform {
         deviceOS = "Android",
         deviceOSVersion = Build.VERSION.RELEASE,
         deviceManufacturer = Build.MANUFACTURER,
-        deviceModel = Build.MODEL,
-        apiKey = null // Will be set after authentication
+        deviceModel = Build.MODEL
     )
 }
