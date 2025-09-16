@@ -3,7 +3,7 @@ package com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel
 import androidx.lifecycle.viewModelScope
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
 import com.kaelmoreno.compose.composemultiplatformbase.data.model.Post
-import com.kaelmoreno.compose.composemultiplatformbase.data.repository.Repository
+import com.kaelmoreno.compose.composemultiplatformbase.data.network.ApiService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +17,7 @@ data class PostsUiState(
 
 class PostsViewModel : BaseViewModel() {
 
-    private val repository = Repository()
+    private val apiService = ApiService()
 
     // Own the posts state directly in this ViewModel
     private val _uiState = MutableStateFlow(PostsUiState())
@@ -30,9 +30,21 @@ class PostsViewModel : BaseViewModel() {
     fun loadPosts() {
         Logger.i("Loading posts requested", "PostsViewModel")
         executeOperationWithFlow(
-            operation = { repository.fetchPosts() },
+            operation = { apiService.getPosts() },
             onSuccess = { posts ->
                 Logger.i("Successfully loaded ${posts.size} posts", "PostsViewModel")
+                _uiState.update { it.copy(posts = posts) }
+                setSuccessMessage("Posts loaded successfully")
+            }
+        )
+    }
+
+    fun loadPostsByUser(userId: Int) {
+        Logger.i("Loading posts for user: $userId", "PostsViewModel")
+        executeOperationWithFlow(
+            operation = { apiService.getPostsByUser(userId) },
+            onSuccess = { posts: List<Post> ->
+                Logger.i("Successfully loaded ${posts.size} posts for user: $userId", "PostsViewModel")
                 _uiState.update { it.copy(posts = posts) }
                 setSuccessMessage("Posts loaded successfully")
             }

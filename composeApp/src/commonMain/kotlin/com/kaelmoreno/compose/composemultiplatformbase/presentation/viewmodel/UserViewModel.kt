@@ -3,7 +3,7 @@ package com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel
 import androidx.lifecycle.viewModelScope
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
 import com.kaelmoreno.compose.composemultiplatformbase.data.model.User
-import com.kaelmoreno.compose.composemultiplatformbase.data.repository.Repository
+import com.kaelmoreno.compose.composemultiplatformbase.data.network.ApiService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +17,7 @@ data class UserUiState(
 
 class UserViewModel : BaseViewModel() {
 
-    private val repository = Repository()
+    private val apiService = ApiService()
 
     // Own the user state directly in this ViewModel
     private val _uiState = MutableStateFlow(UserUiState())
@@ -30,7 +30,7 @@ class UserViewModel : BaseViewModel() {
     fun loadUsers() {
         Logger.i("Loading users requested", "UserViewModel")
         executeOperationWithFlow(
-            operation = { repository.fetchUsers() },
+            operation = { apiService.getUsers() },
             onSuccess = { users ->
                 Logger.i("Successfully loaded ${users.size} users", "UserViewModel")
                 _uiState.update { it.copy(users = users) }
