@@ -45,17 +45,6 @@ class PostsViewModel : BaseViewModel() {
         )
     }
 
-    fun loadPostsByUser(userId: Int) {
-        Logger.i("Loading posts for user $userId", "PostsViewModel")
-        executeOperationWithFlow(
-            operation = { repository.fetchPostsByUser(userId) },
-            onSuccess = { posts ->
-                Logger.i("Successfully loaded ${posts.size} posts for user $userId", "PostsViewModel")
-                setSuccessMessage("User posts loaded successfully")
-            }
-        )
-    }
-
     fun selectPost(post: Post) {
         Logger.d("Post selected: ${post.title}", "PostsViewModel")
         _uiState.value = _uiState.value.copy(selectedPost = post)

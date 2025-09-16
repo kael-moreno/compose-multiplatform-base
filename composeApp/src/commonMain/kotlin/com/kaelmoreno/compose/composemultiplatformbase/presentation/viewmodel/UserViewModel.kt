@@ -40,6 +40,7 @@ class UserViewModel : BaseViewModel() {
             operation = { repository.fetchUsers() },
             onSuccess = { users ->
                 Logger.i("Successfully loaded ${users.size} users", "UserViewModel")
+                repository.updateUsers(users) // Update repository state
                 setSuccessMessage("Users loaded successfully")
             }
         )
