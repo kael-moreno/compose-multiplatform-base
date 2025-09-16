@@ -15,6 +15,9 @@ fun App() {
     // Initialize logger when App composable is first created
     LaunchedEffect(Unit) {
         Logger.i("App composable initialized with GitHub color scheme", "App")
+
+        // Initialize Koin for iOS (Android is initialized in MainActivity)
+        initializeKoinForPlatform()
     }
 
     // Use GitHub-inspired color scheme
@@ -37,3 +40,5 @@ fun App() {
         }
     }
 }
+
+expect fun initializeKoinForPlatform()

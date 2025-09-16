@@ -17,7 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
 import com.kaelmoreno.compose.composemultiplatformbase.data.model.User
 import com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel.UserViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,8 +25,8 @@ fun UserListScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Create ViewModel in the composable
-    val viewModel: UserViewModel = viewModel { UserViewModel() }
+    // Use Koin for ViewModel injection
+    val viewModel: UserViewModel = koinViewModel()
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 

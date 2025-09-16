@@ -1,6 +1,5 @@
 package com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel
 
-import androidx.lifecycle.viewModelScope
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
 import com.kaelmoreno.compose.composemultiplatformbase.data.model.User
 import com.kaelmoreno.compose.composemultiplatformbase.data.network.ApiService
@@ -8,23 +7,22 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
 data class UserUiState(
     val users: List<User> = emptyList(),
     val selectedUser: User? = null
 )
 
-class UserViewModel : BaseViewModel() {
-
-    private val apiService = ApiService()
+class UserViewModel(
+    private val apiService: ApiService
+) : BaseViewModel() {
 
     // Own the user state directly in this ViewModel
     private val _uiState = MutableStateFlow(UserUiState())
     val uiState: StateFlow<UserUiState> = _uiState.asStateFlow()
 
     init {
-        Logger.i("UserViewModel initialized", "UserViewModel")
+        Logger.i("UserViewModel initialized with dependency injection", "UserViewModel")
     }
 
     fun loadUsers() {
@@ -54,6 +52,4 @@ class UserViewModel : BaseViewModel() {
         clearError()
         loadUsers()
     }
-
-    fun retryLoadUsers() = retry() // Alias for backward compatibility
 }
