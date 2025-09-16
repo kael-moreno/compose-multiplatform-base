@@ -18,21 +18,9 @@ class UserViewModel : BaseViewModel() {
 
     private val repository = Repository()
 
-    // UI-specific state (no loading/error needed)
+    // Own the user state directly in this ViewModel
     private val _uiState = MutableStateFlow(UserUiState())
     val uiState: StateFlow<UserUiState> = _uiState.asStateFlow()
-
-    init {
-        Logger.i("UserViewModel initialized", "UserViewModel")
-
-        // Observe repository data changes
-        viewModelScope.launch {
-            repository.users.collect { users ->
-                Logger.d("Repository users updated: ${users.size} users", "UserViewModel")
-                _uiState.value = _uiState.value.copy(users = users)
-            }
-        }
-    }
 
     fun loadUsers() {
         Logger.i("Loading users requested", "UserViewModel")
@@ -40,7 +28,7 @@ class UserViewModel : BaseViewModel() {
             operation = { repository.fetchUsers() },
             onSuccess = { users ->
                 Logger.i("Successfully loaded ${users.size} users", "UserViewModel")
-                repository.updateUsers(users) // Update repository state
+                _uiState.value = _uiState.value.copy(users = users)
                 setSuccessMessage("Users loaded successfully")
             }
         )

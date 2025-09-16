@@ -18,21 +18,9 @@ class PostsViewModel : BaseViewModel() {
 
     private val repository = Repository()
 
-    // UI-specific state (loading/error inherited from BaseViewModel)
+    // Own the posts state directly in this ViewModel
     private val _uiState = MutableStateFlow(PostsUiState())
     val uiState: StateFlow<PostsUiState> = _uiState.asStateFlow()
-
-    init {
-        Logger.i("PostsViewModel initialized", "PostsViewModel")
-
-        // Observe repository data changes
-        viewModelScope.launch {
-            repository.posts.collect { posts ->
-                Logger.d("Repository posts updated: ${posts.size} posts", "PostsViewModel")
-                _uiState.value = _uiState.value.copy(posts = posts)
-            }
-        }
-    }
 
     fun loadPosts() {
         Logger.i("Loading posts requested", "PostsViewModel")
@@ -40,6 +28,7 @@ class PostsViewModel : BaseViewModel() {
             operation = { repository.fetchPosts() },
             onSuccess = { posts ->
                 Logger.i("Successfully loaded ${posts.size} posts", "PostsViewModel")
+                _uiState.value = _uiState.value.copy(posts = posts)
                 setSuccessMessage("Posts loaded successfully")
             }
         )
