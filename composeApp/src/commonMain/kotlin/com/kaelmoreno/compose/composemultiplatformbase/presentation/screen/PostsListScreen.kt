@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
 import com.kaelmoreno.compose.composemultiplatformbase.data.model.Post
+import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.BaseContent
 import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.EmptyContent
 import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.ErrorContent
 import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.LoadingContent
@@ -79,55 +80,48 @@ fun PostsListScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            when {
-                isLoading -> {
-                    LoadingContent(
-                        itemLoading = "Posts"
-                    )
-                }
-                error != null -> {
-                    ErrorContent(
-                        error = error!!,
-                        onRetry = { viewModel.retry() }
-                    )
-                }
-                uiState.posts.isEmpty() -> {
-                    EmptyContent(onRefresh = { viewModel.loadPosts() })
-                }
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        // Header with post count
-                        item {
-                            Text(
-                                text = "${uiState.posts.size} posts loaded",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                        }
+            // Using the new BaseContent composable
+            BaseContent(
+                isLoading = isLoading,
+                error = error,
+                items = uiState.posts,
+                itemName = "Posts",
+                onRetry = { viewModel.retry() },
+                onRefresh = { viewModel.loadPosts() }
+            ) {
+                // Content for non-loading, non-error, non-empty state
+                LazyColumn(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    // Header with post count
+                    item {
+                        Text(
+                            text = "${uiState.posts.size} posts loaded",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
 
-                        // Posts list items with details shown below each clicked item
-                        items(uiState.posts) { post ->
-                            PostListItem(
-                                post = post,
-                                onClick = {
-                                    if (uiState.selectedPost?.id == post.id) {
-                                        viewModel.clearSelectedPost() // Close if same post clicked
-                                    } else {
-                                        viewModel.selectPost(post) // Select new post
-                                    }
+                    // Posts list items with details shown below each clicked item
+                    items(uiState.posts) { post ->
+                        PostListItem(
+                            post = post,
+                            onClick = {
+                                if (uiState.selectedPost?.id == post.id) {
+                                    viewModel.clearSelectedPost() // Close if same post clicked
+                                } else {
+                                    viewModel.selectPost(post) // Select new post
                                 }
-                            )
-
-                            // Show details immediately below this post card if it's selected
-                            if (uiState.selectedPost?.id == post.id) {
-                                PostDetailCard(
-                                    post = post,
-                                    onDismiss = { viewModel.clearSelectedPost() }
-                                )
                             }
+                        )
+
+                        // Show details immediately below this post card if it's selected
+                        if (uiState.selectedPost?.id == post.id) {
+                            PostDetailCard(
+                                post = post,
+                                onDismiss = { viewModel.clearSelectedPost() }
+                            )
                         }
                     }
                 }
