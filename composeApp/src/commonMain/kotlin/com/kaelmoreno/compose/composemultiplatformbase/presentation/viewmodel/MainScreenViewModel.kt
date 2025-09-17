@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.kaelmoreno.compose.composemultiplatformbase.data.repository.DataStoreRepository
 import com.kaelmoreno.compose.composemultiplatformbase.data.model.User
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
+import com.kaelmoreno.compose.composemultiplatformbase.data.repository.EncryptedDataStoreRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +21,7 @@ data class MainScreenUiState(
 )
 
 class MainScreenViewModel(
-    private val dataStoreRepository: DataStoreRepository
+    private val dataStoreRepository: EncryptedDataStoreRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainScreenUiState())
