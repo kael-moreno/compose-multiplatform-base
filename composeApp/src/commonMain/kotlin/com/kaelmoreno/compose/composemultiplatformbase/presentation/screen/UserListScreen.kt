@@ -260,7 +260,7 @@ private fun UserListItem(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = user.email,
+                text = user.email!!,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -324,11 +324,11 @@ private fun UserDetailCard(
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "Company: ${user.company.name}",
+                text = "Company: ${user.company!!.name}",
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "Address: ${user.address.street}, ${user.address.city}",
+                text = "Address: ${user.address!!.street}, ${user.address.city}",
                 style = MaterialTheme.typography.bodyMedium
             )
         }

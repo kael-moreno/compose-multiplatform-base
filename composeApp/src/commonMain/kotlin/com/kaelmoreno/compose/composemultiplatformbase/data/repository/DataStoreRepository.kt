@@ -5,16 +5,26 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
+import com.kaelmoreno.compose.composemultiplatformbase.data.model.User
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
 
 class DataStoreRepository(private val dataStore: DataStore<Preferences>) {
+
+    private val json = Json {
+        prettyPrint = true
+        ignoreUnknownKeys = true
+    }
 
     companion object {
         private val USER_TOKEN_KEY = stringPreferencesKey("user_token")
         private val USER_NAME_KEY = stringPreferencesKey("user_name")
+        private val USER_JSON_KEY = stringPreferencesKey("user_json")
     }
 
     // String storage methods using DataStore Preferences
@@ -95,6 +105,47 @@ class DataStoreRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
+    // JSON storage methods for User object
+    suspend fun saveUser(user: User): Boolean {
+        return try {
+            val jsonString = json.encodeToString(user)
+            dataStore.edit { preferences ->
+                preferences[USER_JSON_KEY] = jsonString
+            }
+            Logger.d("DataStore: User JSON saved successfully: $jsonString", "DataStoreRepository")
+            true
+        } catch (e: Exception) {
+            Logger.e("DataStore: Error saving user JSON", e, "DataStoreRepository")
+            false
+        }
+    }
+
+    suspend fun getUser(): User? {
+        return try {
+            val preferences = dataStore.data.first()
+            val jsonString = preferences[USER_JSON_KEY]
+            val user = jsonString?.let { json.decodeFromString<User>(it) }
+            Logger.d("DataStore: User JSON retrieved: ${user != null}", "DataStoreRepository")
+            user
+        } catch (e: Exception) {
+            Logger.e("DataStore: Error getting user JSON", e, "DataStoreRepository")
+            null
+        }
+    }
+
+    suspend fun clearUser(): Boolean {
+        return try {
+            dataStore.edit { preferences ->
+                preferences.remove(USER_JSON_KEY)
+            }
+            Logger.d("DataStore: User JSON cleared", "DataStoreRepository")
+            true
+        } catch (e: Exception) {
+            Logger.e("DataStore: Error clearing user JSON", e, "DataStoreRepository")
+            false
+        }
+    }
+
     // Clear all DataStore data
     suspend fun clearAllData(): Boolean {
         return try {
@@ -129,6 +180,23 @@ class DataStoreRepository(private val dataStore: DataStore<Preferences>) {
             }
             .map { preferences ->
                 preferences[USER_NAME_KEY]?.takeIf { it.isNotEmpty() }
+            }
+    }
+
+    fun getUserFlow(): Flow<User?> {
+        return dataStore.data
+            .catch { exception ->
+                Logger.e("DataStore: Error in user JSON flow", exception, "DataStoreRepository")
+                emit(androidx.datastore.preferences.core.emptyPreferences())
+            }
+            .map { preferences ->
+                try {
+                    val jsonString = preferences[USER_JSON_KEY]
+                    jsonString?.let { json.decodeFromString<User>(it) }
+                } catch (e: Exception) {
+                    Logger.e("DataStore: Error deserializing user JSON in flow", e, "DataStoreRepository")
+                    null
+                }
             }
     }
 }
