@@ -9,6 +9,6 @@ object HttpConstants {
         const val USERS = "$BASE_URL/users2"
 
         // Posts endpoints (example of new endpoint)
-        const val POSTS = "$BASE_URL/posts"
+        const val POSTS = "$BASE_URL/posts2"
     }
 }

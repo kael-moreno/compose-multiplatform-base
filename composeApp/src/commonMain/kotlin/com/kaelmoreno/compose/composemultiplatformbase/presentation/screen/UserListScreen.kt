@@ -16,6 +16,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
 import com.kaelmoreno.compose.composemultiplatformbase.data.model.User
+import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.EmptyContent
+import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.ErrorContent
+import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.LoadingContent
 import com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel.UserViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -110,7 +113,9 @@ fun UserListScreen(
 
             when {
                 isLoading -> {
-                    LoadingContent()
+                    LoadingContent(
+                        itemLoading = "Users"
+                    )
                 }
                 error != null -> {
                     ErrorContent(
@@ -159,74 +164,6 @@ fun UserListScreen(
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun LoadingContent() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            CircularProgressIndicator()
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Loading users...")
-        }
-    }
-}
-
-@Composable
-private fun ErrorContent(
-    error: String,
-    onRetry: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Error",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = error,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onRetry) {
-                Text("Retry")
-            }
-        }
-    }
-}
-
-@Composable
-private fun EmptyContent(onRefresh: () -> Unit) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("No users found")
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onRefresh) {
-                Text("Refresh")
             }
         }
     }
