@@ -1,5 +1,6 @@
 package com.kaelmoreno.compose.composemultiplatformbase.data.repository
 
+import com.kaelmoreno.compose.composemultiplatformbase.Logger
 import com.kaelmoreno.compose.composemultiplatformbase.data.model.UserPreferences
 import eu.anifantakis.lib.ksafe.KSafe
 
@@ -13,9 +14,10 @@ class SecureStorageRepository(private val kSafe: KSafe) {
     // String storage methods using suspend API
     suspend fun saveUserToken(token: String): Boolean {
         return try {
-            kSafe.put(KEY_USER_TOKEN, token)
+            kSafe.put(KEY_USER_TOKEN, token, true)
             true
         } catch (e: Exception) {
+            Logger.e("Error saving user token", e)
             false
         }
     }
@@ -24,6 +26,7 @@ class SecureStorageRepository(private val kSafe: KSafe) {
         return try {
             kSafe.get(KEY_USER_TOKEN, "").takeIf { it.isNotEmpty() }
         } catch (e: Exception) {
+            Logger.e("Error getting token", e)
             null
         }
     }
@@ -40,7 +43,7 @@ class SecureStorageRepository(private val kSafe: KSafe) {
     // JSON storage methods using suspend API
     suspend fun saveUserPreferences(preferences: UserPreferences): Boolean {
         return try {
-            kSafe.put(KEY_USER_PREFERENCES, preferences)
+            kSafe.put(KEY_USER_PREFERENCES, preferences, true)
             true
         } catch (e: Exception) {
             false
