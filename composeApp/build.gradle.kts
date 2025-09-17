@@ -64,6 +64,11 @@ kotlin {
             // Koin dependencies
             implementation(libs.koin.core)
             implementation(libs.koin.compose.viewmodel)
+
+            // commonMain
+            implementation(libs.ksafe)
+            implementation(libs.ksafe.compose) // ← Compose state (optional)
+
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
