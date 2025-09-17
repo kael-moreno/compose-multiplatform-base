@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		68DF0AF1F8D50676BF3DBEC0 /* Compose Multiplatform Base.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Compose Multiplatform Base.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		68DF0AF1F8D50676BF3DBEC0 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iosApp.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -59,7 +59,7 @@
 		3FD6D429E7D8A763A8414D10 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				68DF0AF1F8D50676BF3DBEC0 /* Compose Multiplatform Base.app */,
+				68DF0AF1F8D50676BF3DBEC0 /* iosApp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -87,7 +87,7 @@
 			packageProductDependencies = (
 			);
 			productName = iosApp;
-			productReference = 68DF0AF1F8D50676BF3DBEC0 /* Compose Multiplatform Base.app */;
+			productReference = 68DF0AF1F8D50676BF3DBEC0 /* iosApp.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -312,6 +312,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				PRODUCT_NAME = iosApp;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -340,6 +341,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				PRODUCT_NAME = iosApp;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
