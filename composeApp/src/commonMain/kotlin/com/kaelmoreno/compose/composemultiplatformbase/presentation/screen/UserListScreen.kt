@@ -36,19 +36,10 @@ fun UserListScreen(
     // Get loading and error states from BaseViewModel
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
-    val successMessage by viewModel.successMessage.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         Logger.i("UserListScreen initialized", "UI")
         viewModel.loadUsers()
-    }
-
-    // Clear success message after showing it
-    LaunchedEffect(successMessage) {
-        if (successMessage != null) {
-            kotlinx.coroutines.delay(2000) // Show for 2 seconds
-            viewModel.clearSuccessMessage()
-        }
     }
 
     // Debug logging for UI state changes
@@ -93,24 +84,6 @@ fun UserListScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // Success message snackbar
-            successMessage?.let { message ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
-                ) {
-                    Text(
-                        text = message,
-                        modifier = Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-
             when {
                 isLoading -> {
                     LoadingContent(
