@@ -37,18 +37,6 @@ class PostsViewModel(
         )
     }
 
-    fun loadPostsByUser(userId: Int) {
-        Logger.i("Loading posts for user: $userId", "PostsViewModel")
-        executeOperationWithFlow(
-            operation = { apiService.getPostsByUser(userId) },
-            onSuccess = { posts: List<Post> ->
-                Logger.i("Successfully loaded ${posts.size} posts for user: $userId", "PostsViewModel")
-                _uiState.update { it.copy(posts = posts) }
-                setSuccessMessage("Posts loaded successfully")
-            }
-        )
-    }
-
     fun selectPost(post: Post) {
         Logger.d("Post selected: ${post.title}", "PostsViewModel")
         _uiState.update { it.copy(selectedPost = post) }

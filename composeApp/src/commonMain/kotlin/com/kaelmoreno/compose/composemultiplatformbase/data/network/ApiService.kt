@@ -42,20 +42,4 @@ class ApiService(
             }
         )
     }
-
-    fun getPostsByUser(userId: Int): Flow<ResponseHandler<List<Post>>> {
-        Logger.d("Fetching posts for user: $userId", "ApiService")
-
-        return enqueue<List<Post>>(
-            platform = platform,
-            encryptedDataStoreRepository = encryptedDataStoreRepository,
-            httpMethod = HttpMethods.GET,
-            httpEndpoint = HttpConstants.Endpoints.POSTS,
-            query = arrayOf("userId" to userId.toString()),
-            onSuccessResult = { _, result ->
-                Logger.i("Successfully fetched ${result.size} posts for user $userId", "ApiService")
-                result
-            }
-        )
-    }
 }
