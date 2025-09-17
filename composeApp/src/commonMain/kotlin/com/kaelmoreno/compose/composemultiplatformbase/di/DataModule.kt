@@ -8,6 +8,7 @@ import com.kaelmoreno.compose.composemultiplatformbase.data.encryption.createEnc
 import com.kaelmoreno.compose.composemultiplatformbase.data.network.ApiService
 import com.kaelmoreno.compose.composemultiplatformbase.data.repository.DataStoreRepository
 import com.kaelmoreno.compose.composemultiplatformbase.data.repository.EncryptedDataStoreRepository
+import org.koin.core.module.Module
 import org.koin.dsl.module
 
 val dataModule = module {
@@ -25,8 +26,11 @@ val dataModule = module {
     single<EncryptedDataStoreRepository> { EncryptedDataStoreRepository(get(), get()) }
 
     // ApiService - singleton that gets Platform injected
-    single<ApiService> { ApiService(get()) }
+    single<ApiService> { ApiService(
+        platform = get(),
+        encryptedDataStoreRepository = get()
+    ) }
 }
 
 // Platform module will be defined separately for each platform
-expect val platformModule: org.koin.core.module.Module
+expect val platformModule: Module

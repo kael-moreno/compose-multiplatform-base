@@ -1,6 +1,7 @@
 package com.kaelmoreno.compose.composemultiplatformbase.data.network
 
 import com.kaelmoreno.compose.composemultiplatformbase.Platform
+import com.kaelmoreno.compose.composemultiplatformbase.data.repository.EncryptedDataStoreRepository
 import io.ktor.client.call.body
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.delete
@@ -14,10 +15,14 @@ import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
 
-fun HttpRequestBuilder.addDefaults(platform: Platform) {
+fun HttpRequestBuilder.addDefaults(
+    platform: Platform,
+    apiKey: String? = null,
+) {
     // We set headers here from platform
     headers {
         append(HttpHeaders.ContentType, "application/json")
@@ -29,11 +34,16 @@ fun HttpRequestBuilder.addDefaults(platform: Platform) {
         append("X-Device-OS-Version", platform.deviceOSVersion)
         append("X-Device-Manufacturer", platform.deviceManufacturer)
         append("X-Device-Model", platform.deviceModel)
+
+        apiKey?.let {
+            append("Authorization", "Bearer $it")
+        }
     }
 }
 
 inline fun <reified T> enqueue(
     platform: Platform,
+    encryptedDataStoreRepository: EncryptedDataStoreRepository,
     body: Any? = null,
     httpMethod: HttpMethods,
     httpEndpoint: String,
@@ -45,11 +55,13 @@ inline fun <reified T> enqueue(
     return flow {
         emit(ResponseHandler.Loading<T>())
 
+        val apiKey = encryptedDataStoreRepository.getUserTokenFlow().first()
+
         runCatching {
             when (httpMethod) {
                 HttpMethods.GET -> {
                     client.get(httpEndpoint) {
-                        addDefaults(platform)
+                        addDefaults(platform, apiKey)
                         query.forEach {
                             parameter(it.first, it.second)
                         }
