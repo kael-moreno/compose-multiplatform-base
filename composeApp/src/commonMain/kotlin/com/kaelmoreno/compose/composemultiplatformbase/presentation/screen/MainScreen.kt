@@ -6,7 +6,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -42,7 +42,7 @@ fun MainScreen(
         modifier = modifier
             .fillMaxSize()
             .safeContentPadding()
-            .padding(24.dp)
+            .padding(16.dp)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -57,13 +57,13 @@ fun MainScreen(
         )
 
         Text(
-            text = "Demo App with KSafe Integration",
+            text = "Demo App with DataStore Integration",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        // KSafe Demo Section
+        // DataStore Demo Section
         Card(
             modifier = Modifier.fillMaxWidth(),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -77,13 +77,13 @@ fun MainScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Lock,
-                        contentDescription = "Secure Storage",
+                        imageVector = Icons.Default.Storage,
+                        contentDescription = "DataStore Demo",
                         tint = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "KSafe Secure Storage Demo",
+                        text = "DataStore Storage Demo",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -113,7 +113,8 @@ fun MainScreen(
                     }
                 }
 
-                if (uiState.savedPreferences != null) {
+                // DataStore User Name Display
+                if (uiState.savedUserName != null) {
                     Card(
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer
@@ -121,25 +122,14 @@ fun MainScreen(
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
-                                text = "Stored JSON (User Preferences):",
+                                text = "Stored User Name:",
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Username: ${uiState.savedPreferences?.username}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = "Theme: ${uiState.savedPreferences?.theme}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = "Notifications: ${uiState.savedPreferences?.notificationsEnabled}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = "Language: ${uiState.savedPreferences?.language}",
-                                style = MaterialTheme.typography.bodyMedium
+                                text = uiState.savedUserName ?: "None",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                         }
                     }
@@ -161,12 +151,12 @@ fun MainScreen(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text("Save String")
+                            Text("Save Token")
                         }
                     }
 
                     Button(
-                        onClick = { viewModel.saveJsonDemo() },
+                        onClick = { viewModel.saveUserNameDemo() },
                         enabled = !uiState.isLoading,
                         modifier = Modifier.weight(1f)
                     ) {
@@ -176,7 +166,7 @@ fun MainScreen(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text("Save JSON")
+                            Text("Save Name")
                         }
                     }
                 }
@@ -195,7 +185,7 @@ fun MainScreen(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Clear All Stored Data")
+                    Text("Clear All DataStore Data")
                 }
 
                 // Status Message
@@ -284,7 +274,7 @@ fun MainScreen(
 
         // Footer
         Text(
-            text = "Built with Kotlin Multiplatform & Compose + KSafe",
+            text = "Built with Kotlin Multiplatform & Compose + DataStore",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

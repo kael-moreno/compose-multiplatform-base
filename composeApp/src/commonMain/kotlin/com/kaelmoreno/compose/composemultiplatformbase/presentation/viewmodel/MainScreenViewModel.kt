@@ -2,8 +2,7 @@ package com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kaelmoreno.compose.composemultiplatformbase.data.model.UserPreferences
-import com.kaelmoreno.compose.composemultiplatformbase.data.repository.SecureStorageRepository
+import com.kaelmoreno.compose.composemultiplatformbase.data.repository.DataStoreRepository
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,13 +12,13 @@ import kotlin.random.Random
 
 data class MainScreenUiState(
     val savedToken: String? = null,
-    val savedPreferences: UserPreferences? = null,
+    val savedUserName: String? = null,
     val isLoading: Boolean = false,
     val message: String? = null
 )
 
 class MainScreenViewModel(
-    private val secureStorageRepository: SecureStorageRepository
+    private val dataStoreRepository: DataStoreRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainScreenUiState())
@@ -33,17 +32,19 @@ class MainScreenViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
-                val token = secureStorageRepository.getUserToken()
-                val preferences = secureStorageRepository.getUserPreferences()
+                val dataStoreToken = dataStoreRepository.getUserToken()
+                val dataStoreUserName = dataStoreRepository.getUserName()
+
+                val hasDataStoreData = dataStoreToken != null || dataStoreUserName != null
 
                 _uiState.value = _uiState.value.copy(
-                    savedToken = token,
-                    savedPreferences = preferences,
+                    savedToken = dataStoreToken,
+                    savedUserName = dataStoreUserName,
                     isLoading = false,
-                    message = if (token != null || preferences != null) "Data loaded from secure storage" else "No stored data found"
+                    message = if (hasDataStoreData) "Data loaded from DataStore" else "No stored data found"
                 )
 
-                Logger.d("Loaded data - Token: ${token != null}, Preferences: ${preferences != null}", "MainScreenViewModel")
+                Logger.d("Loaded data - DataStore Token: ${dataStoreToken != null}, DataStore UserName: ${dataStoreUserName != null}", "MainScreenViewModel")
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
@@ -58,20 +59,20 @@ class MainScreenViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
-                val demoToken = "demo_user_token_${Random.nextLong()}"
-                val success = secureStorageRepository.saveUserToken(demoToken)
+                val demoToken = "datastore_token_${Random.nextLong()}"
+                val success = dataStoreRepository.saveUserToken(demoToken)
 
                 if (success) {
                     _uiState.value = _uiState.value.copy(
                         savedToken = demoToken,
                         isLoading = false,
-                        message = "String saved successfully!"
+                        message = "String saved successfully using DataStore!"
                     )
-                    Logger.d("String saved: $demoToken", "MainScreenViewModel")
+                    Logger.d("String saved using DataStore", "MainScreenViewModel")
                 } else {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        message = "Failed to save string"
+                        message = "Failed to save string using DataStore"
                     )
                 }
             } catch (e: Exception) {
@@ -84,38 +85,32 @@ class MainScreenViewModel(
         }
     }
 
-    fun saveJsonDemo() {
+    fun saveUserNameDemo() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
-                val demoPreferences = UserPreferences(
-                    username = "demo_user",
-                    theme = "dark",
-                    notificationsEnabled = true,
-                    language = "en"
-                )
-
-                val success = secureStorageRepository.saveUserPreferences(demoPreferences)
+                val demoUserName = "datastore_user_${Random.nextInt(1000)}"
+                val success = dataStoreRepository.saveUserName(demoUserName)
 
                 if (success) {
                     _uiState.value = _uiState.value.copy(
-                        savedPreferences = demoPreferences,
+                        savedUserName = demoUserName,
                         isLoading = false,
-                        message = "JSON saved successfully!"
+                        message = "User name saved successfully using DataStore!"
                     )
-                    Logger.d("JSON saved: $demoPreferences", "MainScreenViewModel")
+                    Logger.d("User name saved using DataStore", "MainScreenViewModel")
                 } else {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        message = "Failed to save JSON"
+                        message = "Failed to save user name using DataStore"
                     )
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    message = "Error saving JSON: ${e.message}"
+                    message = "Error saving user name: ${e.message}"
                 )
-                Logger.e("Error saving JSON", e, "MainScreenViewModel")
+                Logger.e("Error saving user name", e, "MainScreenViewModel")
             }
         }
     }
@@ -124,20 +119,20 @@ class MainScreenViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
-                val success = secureStorageRepository.clearAllData()
+                val success = dataStoreRepository.clearAllData()
 
                 if (success) {
                     _uiState.value = _uiState.value.copy(
                         savedToken = null,
-                        savedPreferences = null,
+                        savedUserName = null,
                         isLoading = false,
-                        message = "All data cleared successfully!"
+                        message = "All data cleared successfully using DataStore!"
                     )
-                    Logger.d("All data cleared", "MainScreenViewModel")
+                    Logger.d("All data cleared using DataStore", "MainScreenViewModel")
                 } else {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        message = "Failed to clear data"
+                        message = "Failed to clear data using DataStore"
                     )
                 }
             } catch (e: Exception) {

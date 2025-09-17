@@ -8,7 +8,6 @@ import com.kaelmoreno.compose.composemultiplatformbase.Platform
 import android.annotation.SuppressLint
 import android.os.Build
 import android.provider.Settings
-import eu.anifantakis.lib.ksafe.KSafe
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 import java.util.UUID
@@ -19,8 +18,6 @@ actual val platformModule = module {
         val context: Context = get() // Koin automatically provides Android Context
         createAndroidPlatform(context)
     }
-
-    single { KSafe(androidContext()) }
 }
 
 private fun createAndroidPlatform(context: Context): Platform {
