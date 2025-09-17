@@ -69,6 +69,11 @@ kotlin {
             implementation(libs.ksafe)
             implementation(libs.ksafe.compose) // ← Compose state (optional)
 
+            // DataStore library
+            implementation(libs.androidx.datastore)
+            // The Preferences DataStore library
+            implementation(libs.androidx.datastore.preferences)
+
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

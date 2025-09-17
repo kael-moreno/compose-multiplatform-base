@@ -10,6 +10,7 @@ androidx-espresso = "3.7.0"
 androidx-lifecycle = "2.9.3"
 androidx-testExt = "1.3.0"
 composeMultiplatform = "1.8.2"
+datastore = "1.1.7"
 junit = "4.13.2"
 kotlin = "2.2.10"
 #Version lock KSafe, it has issues with storing for iOS
@@ -27,6 +28,8 @@ app-version-name = "1.1.0"
 app-version-code = "2"
 
 [libraries]
+androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { module = "junit:junit", version.ref = "junit" }
