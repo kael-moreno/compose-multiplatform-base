@@ -17,6 +17,10 @@ A modern, production-ready Kotlin Multiplatform project template built with Comp
 - ✅ **Base ViewModel** with common loading/error state management
 - ✅ **Repository pattern** for data management
 - ✅ **Comprehensive error handling** and logging
+- ✅ **DataStore** for persistent data storage
+- ✅ **Encrypted storage** for sensitive data
+- ✅ **Dependency Injection** with Koin
+- ✅ **Type-safe input validation** with KSafe
 
 ## 📱 Platforms
 
@@ -31,9 +35,12 @@ compose-multiplatform-base/
 │   ├── src/
 │   │   ├── commonMain/kotlin/           # Shared Kotlin code
 │   │   │   ├── data/                    # Data layer
+│   │   │   │   ├── datastore/           # DataStore configuration
+│   │   │   │   ├── encryption/          # Encryption services
 │   │   │   │   ├── model/               # Data models (User, Post, Comment, etc.)
 │   │   │   │   ├── network/             # API services and HTTP client
 │   │   │   │   └── repository/          # Repository pattern implementation
+│   │   │   ├── di/                      # Dependency injection with Koin
 │   │   │   ├── navigation/              # Type-safe navigation setup
 │   │   │   │   ├── AppNavigation.kt     # Navigation configuration
 │   │   │   │   └── Screen.kt            # Navigation routes
@@ -60,13 +67,19 @@ compose-multiplatform-base/
 ### Architecture & UI
 - **MVVM Architecture** - Clean separation of concerns
 - **Material 3** - Modern design system with GitHub-inspired theming
-- **Navigation Compose** 2.9.0-beta01 - Type-safe navigation
+- **Navigation Compose** 2.9.0-rc02 - Type-safe navigation
 - **Lifecycle ViewModel Compose** 2.9.3 - Lifecycle-aware ViewModels
 
 ### Networking & Data
 - **Ktor Client** 3.3.0 - HTTP client for API calls
 - **Kotlinx Serialization** 1.9.0 - JSON serialization
 - **Kotlinx Coroutines** 1.10.2 - Asynchronous programming
+- **DataStore** 1.1.7 - Data persistence with Preferences
+- **KSafe** - Type-safe input validation
+
+### Dependency Injection
+- **Koin** 4.1.1 - Lightweight dependency injection
+- **Koin ViewModel** - ViewModel integration with Compose
 
 ### Development & Debugging
 - **Napier** 2.7.1 - Cross-platform logging
@@ -80,148 +93,63 @@ compose-multiplatform-base/
   - Albums and photos
   - Todo items
 
+## 🔐 Security Features
+
+- **Encrypted Storage** - Secure storage for sensitive data
+- **Platform-specific Encryption** - Leveraging native security features
+- **Token Management** - Secure token storage and retrieval
+
 ## 🚀 Getting Started
 
 ### Prerequisites
-- **Android Studio** Giraffe or later
-- **Xcode** 14+ (for iOS development)
-- **JDK** 11 or later
+- **Android Studio** Hedgehog or later
+- **Xcode** 15+ (for iOS development)
+- **JDK** 17 or later
 - **Kotlin** 2.2.10+
 
 ### Setup Instructions
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/YOUR-USERNAME/compose-multiplatform-base.git
    cd compose-multiplatform-base
    ```
 
 2. **Open in Android Studio**
    - Open the project in Android Studio
    - Sync Gradle files
-   - Wait for indexing to complete
 
 3. **Run on Android**
-   ```bash
-   ./gradlew composeApp:assembleDebug
-   ```
-   Or use the "Run" button in Android Studio
+   - Select an Android device/emulator
+   - Click "Run"
 
 4. **Run on iOS**
-   - Open `iosApp/iosApp.xcodeproj` in Xcode
-   - Select target device/simulator
-   - Build and run
+   - Open the `iosApp` directory in Xcode
+   - Select an iOS device/simulator
+   - Click "Run"
 
-### Build Commands
+## 📱 Key Features Implementation
 
-```bash
-# Android Debug Build
-./gradlew composeApp:assembleDebug
-
-# Android Release Build
-./gradlew composeApp:assembleRelease
-
-# iOS Framework
-./gradlew composeApp:embedAndSignAppleFrameworkForXcode
-
-# Clean Project
-./gradlew clean
-```
-
-## 🏛️ Architecture Details
-
-### MVVM Pattern
-- **Model**: Data classes with kotlinx.serialization
-- **View**: Compose UI screens
-- **ViewModel**: StateFlow-based state management with BaseViewModel
-
-### BaseViewModel Features
-- Automatic loading state management
-- Global error handling
-- Success message display
-- Coroutine-based operation execution
-- Comprehensive logging
-
-### Data Layer
-- **Repository Pattern**: Centralized data management
-- **API Service**: Ktor-based HTTP client
-- **Models**: Serializable data classes for Users, Posts, Comments, Albums, Photos, and Todos
+### Cross-Platform Architecture
+- **Platform** interface with expect/actual implementations for platform-specific code
+- **DataStore** for synchronized preferences across platforms
+- **Koin** for dependency injection across all platforms
 
 ### Navigation
-- **Type-safe routes** using sealed classes
-- **Kotlinx Serialization** for route parameters
-- **Navigation Compose** for declarative navigation
+- Type-safe navigation with sealed class routes
+- Serializable navigation parameters
+- Centralized navigation setup in AppNavigation.kt
 
-## 📱 Features Overview
+### Data Security
+- Encrypted data storage with platform-specific implementations
+- Secure token management for API authentication
+- Cross-platform encryption service
 
-### Screens
-1. **Main Screen**: Navigation hub with options to view Users and Posts
-2. **User List Screen**: Display list of users from JSONPlaceholder API
-3. **Posts List Screen**: Display list of posts with full CRUD operations
+### UI Components
+- Material 3 implementation with GitHub-inspired theme
+- Responsive layouts that work on both platforms
+- Common components library shared between platforms
 
-### Core Functionality
-- **Network calls** with proper error handling
-- **Loading states** with BaseViewModel
-- **Cross-platform logging** with structured output
-- **Material 3 theming** with light/dark mode support
-- **Type-safe navigation** between screens
+## 📝 License
 
-## 🎨 UI/UX Features
-
-- **GitHub-inspired color scheme** for both light and dark themes
-- **Material 3 components** throughout the app
-- **Responsive design** for different screen sizes
-- **Loading indicators** and error states
-- **Clean, modern interface**
-
-## 🧪 Testing
-
-```bash
-# Run common tests
-./gradlew composeApp:testDebugUnitTest
-
-# Run Android tests
-./gradlew composeApp:connectedAndroidTest
-```
-
-## 📦 Dependencies
-
-Key dependencies are managed through Gradle Version Catalogs:
-- Compose Multiplatform BOM
-- Ktor for networking
-- Kotlinx Serialization for JSON
-- Napier for logging
-- Navigation Compose for routing
-- Material 3 for theming
-
-## 🚀 Deployment
-
-### Android
-1. Configure signing in `android` block
-2. Build release APK: `./gradlew assembleRelease`
-3. Deploy to Google Play Store
-
-### iOS
-1. Configure provisioning profiles in Xcode
-2. Archive and export IPA
-3. Deploy to App Store Connect
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform)
-- [Ktor](https://ktor.io/)
-- [JSONPlaceholder](https://jsonplaceholder.typicode.com/) for demo API
-- [Napier](https://github.com/AAkira/Napier) for cross-platform logging
-- Material Design 3 and GitHub design inspiration
+This project is licensed under the MIT License - see the LICENSE file for details.
