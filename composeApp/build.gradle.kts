@@ -31,6 +31,8 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.android)
+            implementation(libs.koin.android)
+            implementation(libs.koin.compose)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -58,6 +60,20 @@ kotlin {
             // Kotlinx dependencies
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
+
+            // Koin dependencies
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose.viewmodel)
+
+            // commonMain
+            implementation(libs.ksafe)
+            implementation(libs.ksafe.compose) // ← Compose state (optional)
+
+            // DataStore library
+            implementation(libs.androidx.datastore)
+            // The Preferences DataStore library
+            implementation(libs.androidx.datastore.preferences)
+
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -76,9 +92,20 @@ android {
         applicationId = "com.kaelmoreno.compose.composemultiplatformbase"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = libs.versions.app.version.code.get().toInt()
+        versionName = libs.versions.app.version.name.get()
+
+
+        // Generate BuildConfig fields
+        buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
+        buildConfigField("int", "VERSION_CODE", "${versionCode}")
+        buildConfigField("String", "APPLICATION_ID", "\"${applicationId}\"")
     }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"

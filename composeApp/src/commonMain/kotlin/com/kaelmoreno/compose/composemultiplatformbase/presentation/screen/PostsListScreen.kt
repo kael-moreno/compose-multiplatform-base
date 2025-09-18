@@ -16,8 +16,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
 import com.kaelmoreno.compose.composemultiplatformbase.data.model.Post
+import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.BaseContent
+import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.EmptyContent
+import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.ErrorContent
+import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.LoadingContent
 import com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel.PostsViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,27 +29,18 @@ fun PostsListScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Create ViewModel in the composable
-    val viewModel: PostsViewModel = viewModel { PostsViewModel() }
+    // Use Koin for ViewModel injection
+    val viewModel: PostsViewModel = koinViewModel()
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     // Get loading and error states from BaseViewModel
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
-    val successMessage by viewModel.successMessage.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         Logger.i("PostsListScreen initialized", "UI")
         viewModel.loadPosts()
-    }
-
-    // Clear success message after showing it
-    LaunchedEffect(successMessage) {
-        if (successMessage != null) {
-            kotlinx.coroutines.delay(2000) // Show for 2 seconds
-            viewModel.clearSuccessMessage()
-        }
     }
 
     Column(
@@ -85,142 +80,51 @@ fun PostsListScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // Success message snackbar
-            successMessage?.let { message ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
+            // Using the new BaseContent composable
+            BaseContent(
+                isLoading = isLoading,
+                error = error,
+                items = uiState.posts,
+                itemName = "Posts",
+                onRetry = { viewModel.retry() },
+                onRefresh = { viewModel.loadPosts() }
+            ) {
+                // Content for non-loading, non-error, non-empty state
+                LazyColumn(
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Text(
-                        text = message,
-                        modifier = Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
+                    // Header with post count
+                    item {
+                        Text(
+                            text = "${uiState.posts.size} posts loaded",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
 
-            when {
-                isLoading -> {
-                    LoadingContent()
-                }
-                error != null -> {
-                    ErrorContent(
-                        error = error!!,
-                        onRetry = { viewModel.retry() }
-                    )
-                }
-                uiState.posts.isEmpty() -> {
-                    EmptyContent(onRefresh = { viewModel.loadPosts() })
-                }
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        // Header with post count
-                        item {
-                            Text(
-                                text = "${uiState.posts.size} posts loaded",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                        }
-
-                        // Posts list items with details shown below each clicked item
-                        items(uiState.posts) { post ->
-                            PostListItem(
-                                post = post,
-                                onClick = {
-                                    if (uiState.selectedPost?.id == post.id) {
-                                        viewModel.clearSelectedPost() // Close if same post clicked
-                                    } else {
-                                        viewModel.selectPost(post) // Select new post
-                                    }
+                    // Posts list items with details shown below each clicked item
+                    items(uiState.posts) { post ->
+                        PostListItem(
+                            post = post,
+                            onClick = {
+                                if (uiState.selectedPost?.id == post.id) {
+                                    viewModel.clearSelectedPost() // Close if same post clicked
+                                } else {
+                                    viewModel.selectPost(post) // Select new post
                                 }
-                            )
-
-                            // Show details immediately below this post card if it's selected
-                            if (uiState.selectedPost?.id == post.id) {
-                                PostDetailCard(
-                                    post = post,
-                                    onDismiss = { viewModel.clearSelectedPost() }
-                                )
                             }
+                        )
+
+                        // Show details immediately below this post card if it's selected
+                        if (uiState.selectedPost?.id == post.id) {
+                            PostDetailCard(
+                                post = post,
+                                onDismiss = { viewModel.clearSelectedPost() }
+                            )
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun LoadingContent() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            CircularProgressIndicator()
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Loading posts...")
-        }
-    }
-}
-
-@Composable
-private fun ErrorContent(
-    error: String,
-    onRetry: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Error",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = error,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onRetry) {
-                Text("Retry")
-            }
-        }
-    }
-}
-
-@Composable
-private fun EmptyContent(onRefresh: () -> Unit) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("No posts found")
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onRefresh) {
-                Text("Refresh")
             }
         }
     }

@@ -11,11 +11,6 @@ import kotlinx.serialization.json.Json
 object NetworkClient {
     val httpClient = HttpClient {
 
-        headers {
-            append("Accept", "application/json")
-            append("User-Agent", "KMM-App/1.0")
-        }
-
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true
@@ -36,7 +31,7 @@ object NetworkClient {
                     com.kaelmoreno.compose.composemultiplatformbase.Logger.d(message, "Ktor")
                 }
             }
-            level = LogLevel.INFO
+            level = LogLevel.ALL
         }
 
         expectSuccess = false

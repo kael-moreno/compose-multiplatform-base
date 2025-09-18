@@ -15,6 +15,7 @@ fun App() {
     // Initialize logger when App composable is first created
     LaunchedEffect(Unit) {
         Logger.i("App composable initialized with GitHub color scheme", "App")
+
     }
 
     // Use GitHub-inspired color scheme

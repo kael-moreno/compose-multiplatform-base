@@ -16,8 +16,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
 import com.kaelmoreno.compose.composemultiplatformbase.data.model.User
+import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.EmptyContent
+import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.ErrorContent
+import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.LoadingContent
 import com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel.UserViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,27 +28,18 @@ fun UserListScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Create ViewModel in the composable
-    val viewModel: UserViewModel = viewModel { UserViewModel() }
+    // Use Koin for ViewModel injection
+    val viewModel: UserViewModel = koinViewModel()
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     // Get loading and error states from BaseViewModel
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
-    val successMessage by viewModel.successMessage.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         Logger.i("UserListScreen initialized", "UI")
         viewModel.loadUsers()
-    }
-
-    // Clear success message after showing it
-    LaunchedEffect(successMessage) {
-        if (successMessage != null) {
-            kotlinx.coroutines.delay(2000) // Show for 2 seconds
-            viewModel.clearSuccessMessage()
-        }
     }
 
     // Debug logging for UI state changes
@@ -90,27 +84,11 @@ fun UserListScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // Success message snackbar
-            successMessage?.let { message ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
-                ) {
-                    Text(
-                        text = message,
-                        modifier = Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-
             when {
                 isLoading -> {
-                    LoadingContent()
+                    LoadingContent(
+                        itemLoading = "Users"
+                    )
                 }
                 error != null -> {
                     ErrorContent(
@@ -165,74 +143,6 @@ fun UserListScreen(
 }
 
 @Composable
-private fun LoadingContent() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            CircularProgressIndicator()
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Loading users...")
-        }
-    }
-}
-
-@Composable
-private fun ErrorContent(
-    error: String,
-    onRetry: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Error",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = error,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onRetry) {
-                Text("Retry")
-            }
-        }
-    }
-}
-
-@Composable
-private fun EmptyContent(onRefresh: () -> Unit) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("No users found")
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onRefresh) {
-                Text("Refresh")
-            }
-        }
-    }
-}
-
-@Composable
 private fun UserListItem(
     user: User,
     onClick: () -> Unit
@@ -260,7 +170,7 @@ private fun UserListItem(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = user.email,
+                text = user.email!!,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -324,11 +234,11 @@ private fun UserDetailCard(
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "Company: ${user.company.name}",
+                text = "Company: ${user.company!!.name}",
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "Address: ${user.address.street}, ${user.address.city}",
+                text = "Address: ${user.address!!.street}, ${user.address.city}",
                 style = MaterialTheme.typography.bodyMedium
             )
         }
