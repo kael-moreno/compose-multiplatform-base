@@ -1,14 +1,33 @@
-package com.kaelmoreno.compose.composemultiplatformbase.presentation.screen
+package com.kaelmoreno.compose.composemultiplatformbase.presentation.screen.post_list_screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -17,21 +36,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
 import com.kaelmoreno.compose.composemultiplatformbase.data.model.Post
 import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.BaseContent
-import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.EmptyContent
-import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.ErrorContent
-import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.LoadingContent
-import com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel.PostsViewModel
+import kotlinx.coroutines.flow.collectLatest
 import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PostsListScreen(
+fun PostListScreenRoot(
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    viewModel: PostsViewModel = koinViewModel()
 ) {
-    // Use Koin for ViewModel injection
-    val viewModel: PostsViewModel = koinViewModel()
-
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     // Get loading and error states from BaseViewModel
@@ -40,11 +52,39 @@ fun PostsListScreen(
 
     LaunchedEffect(Unit) {
         Logger.i("PostsListScreen initialized", "UI")
-        viewModel.loadPosts()
+        viewModel.onAction(PostListScreenAction.OnLoadPosts)
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.sideEffect.collectLatest { sideEffect ->
+            when (sideEffect) {
+                PostListScreenSideEffect.BackNavigate -> {
+                    Logger.d("Back navigation side effect received", "UI")
+                    onBack()
+                }
+            }
+        }
+    }
+
+    PostsListScreen(
+        isLoading,
+        error,
+        uiState
+    ) { action ->
+        viewModel.onAction(action)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PostsListScreen(
+    isLoading: Boolean,
+    error: String?,
+    uiState: PostsUiState,
+    action: (PostListScreenAction) -> Unit,
+) {
     Column(
-        modifier = modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
         // TopAppBar with proper Material Icons
@@ -55,7 +95,7 @@ fun PostsListScreen(
             navigationIcon = {
                 IconButton(onClick = {
                     Logger.d("Back button pressed", "UI")
-                    onBack()
+                    action(PostListScreenAction.OnBackNavigate)
                 }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -65,7 +105,7 @@ fun PostsListScreen(
             },
             actions = {
                 // Refresh action in app bar
-                IconButton(onClick = { viewModel.loadPosts() }) {
+                IconButton(onClick = { action(PostListScreenAction.OnLoadPosts) }) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = "Refresh"
@@ -86,8 +126,8 @@ fun PostsListScreen(
                 error = error,
                 items = uiState.posts,
                 itemName = "Posts",
-                onRetry = { viewModel.retry() },
-                onRefresh = { viewModel.loadPosts() }
+                onRetry = { action(PostListScreenAction.OnRetry) },
+                onRefresh = { action(PostListScreenAction.OnLoadPosts) }
             ) {
                 // Content for non-loading, non-error, non-empty state
                 LazyColumn(
@@ -109,9 +149,9 @@ fun PostsListScreen(
                             post = post,
                             onClick = {
                                 if (uiState.selectedPost?.id == post.id) {
-                                    viewModel.clearSelectedPost() // Close if same post clicked
+                                    action(PostListScreenAction.OnClearSelectedPost) // Close if same post clicked
                                 } else {
-                                    viewModel.selectPost(post) // Select new post
+                                    action(PostListScreenAction.OnSelectPost(post))  // Select new post
                                 }
                             }
                         )
@@ -120,7 +160,7 @@ fun PostsListScreen(
                         if (uiState.selectedPost?.id == post.id) {
                             PostDetailCard(
                                 post = post,
-                                onDismiss = { viewModel.clearSelectedPost() }
+                                onDismiss = { action(PostListScreenAction.OnClearSelectedPost) }
                             )
                         }
                     }

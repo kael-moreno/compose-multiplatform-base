@@ -1,28 +1,52 @@
-package com.kaelmoreno.compose.composemultiplatformbase.presentation.screen
+package com.kaelmoreno.compose.composemultiplatformbase.presentation.screen.main_screen
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Article
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
-import com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel.MainScreenViewModel
+import kotlinx.coroutines.flow.collectLatest
 import org.koin.compose.viewmodel.koinViewModel
 
+
 @Composable
-fun MainScreen(
+fun MainScreenRoot(
     onNavigateToUsers: () -> Unit,
     onNavigateToPosts: () -> Unit,
-    modifier: Modifier = Modifier,
     viewModel: MainScreenViewModel = koinViewModel()
 ) {
     LaunchedEffect(Unit) {
@@ -31,15 +55,43 @@ fun MainScreen(
 
     val uiState by viewModel.uiState.collectAsState()
 
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+
     // Show snackbar for messages
     uiState.message?.let { message ->
         LaunchedEffect(message) {
-            viewModel.clearMessage()
+            viewModel.onAction(MainScreenAction.OnClearMessage)
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.sideEffect.collectLatest { sideEffect ->
+            when (sideEffect) {
+                MainScreenSideEffect.NavigateToPosts -> onNavigateToPosts
+                MainScreenSideEffect.NavigateToUsers -> onNavigateToUsers
+            }
+        }
+    }
+
+    MainScreen(
+        isLoading,
+        error,
+        uiState) { action ->
+        viewModel.onAction(action)
+    }
+}
+
+
+@Composable
+fun MainScreen(
+    isLoading: Boolean,
+    error: String?,
+    uiState: MainScreenUiState,
+    action: (MainScreenAction) -> Unit
+) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .safeContentPadding()
             .padding(16.dp)
@@ -187,11 +239,11 @@ fun MainScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Button(
-                        onClick = { viewModel.saveStringDemo() },
-                        enabled = !uiState.isLoading,
+                        onClick = { action(MainScreenAction.OnSaveStringDemo) },
+                        enabled = !isLoading,
                         modifier = Modifier.weight(1f)
                     ) {
-                        if (uiState.isLoading) {
+                        if (isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(16.dp),
                                 strokeWidth = 2.dp
@@ -202,11 +254,11 @@ fun MainScreen(
                     }
 
                     Button(
-                        onClick = { viewModel.saveUserNameDemo() },
-                        enabled = !uiState.isLoading,
+                        onClick = { action(MainScreenAction.OnSaveUserNameDemo) },
+                        enabled = !isLoading,
                         modifier = Modifier.weight(1f)
                     ) {
-                        if (uiState.isLoading) {
+                        if (isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(16.dp),
                                 strokeWidth = 2.dp
@@ -219,14 +271,14 @@ fun MainScreen(
 
                 // User JSON Button
                 Button(
-                    onClick = { viewModel.saveUserJsonDemo() },
-                    enabled = !uiState.isLoading,
+                    onClick = { action(MainScreenAction.OnSaveUserJsonDemo) },
+                    enabled = !isLoading,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.tertiary
                     )
                 ) {
-                    if (uiState.isLoading) {
+                    if (isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(16.dp),
                             strokeWidth = 2.dp
@@ -243,8 +295,8 @@ fun MainScreen(
                 }
 
                 OutlinedButton(
-                    onClick = { viewModel.clearAllData() },
-                    enabled = !uiState.isLoading,
+                    onClick = { action(MainScreenAction.OnClearAllData) },
+                    enabled = !isLoading,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.error
@@ -300,7 +352,7 @@ fun MainScreen(
                 Button(
                     onClick = {
                         Logger.d("Navigating to Users screen", "MainScreen")
-                        onNavigateToUsers()
+                        action(MainScreenAction.OnNavigateToUsers)
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -316,7 +368,7 @@ fun MainScreen(
                 Button(
                     onClick = {
                         Logger.d("Navigating to Posts screen", "MainScreen")
-                        onNavigateToPosts()
+                        action(MainScreenAction.OnNavigateToPosts)
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {

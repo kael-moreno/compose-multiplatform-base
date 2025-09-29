@@ -1,13 +1,15 @@
-package com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel
+package com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
 import com.kaelmoreno.compose.composemultiplatformbase.data.network.ResponseHandler
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -15,7 +17,7 @@ import kotlinx.coroutines.launch
  * Base ViewModel that provides common loading and error state management
  * that can be reused across different ViewModels
  */
-abstract class BaseViewModel : ViewModel() {
+abstract class BaseViewModel<SideEffect : BaseSideEffect> : ViewModel() {
 
     // Global loading state - can be used for any operation
     private val _isLoading = MutableStateFlow(false)
@@ -28,6 +30,9 @@ abstract class BaseViewModel : ViewModel() {
     // Success state - can be used to show success messages
     private val _successMessage = MutableStateFlow<String?>(null)
     val successMessage: StateFlow<String?> = _successMessage.asStateFlow()
+
+    private val _sideEffect = Channel<SideEffect>()
+    val sideEffect = _sideEffect.receiveAsFlow()
 
     /**
      * Execute an operation that returns a Flow<ResponseHandler<T>> with automatic loading and error handling
@@ -179,6 +184,12 @@ abstract class BaseViewModel : ViewModel() {
      */
     protected fun setError(error: String?) {
         _error.update { error }
+    }
+
+    protected fun sendSideEffect(effect: SideEffect) {
+        viewModelScope.launch {
+            _sideEffect.send(effect)
+        }
     }
 
     /**

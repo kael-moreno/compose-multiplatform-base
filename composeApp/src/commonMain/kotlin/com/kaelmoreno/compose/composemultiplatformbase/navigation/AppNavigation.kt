@@ -7,9 +7,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
-import com.kaelmoreno.compose.composemultiplatformbase.presentation.screen.MainScreen
-import com.kaelmoreno.compose.composemultiplatformbase.presentation.screen.PostsListScreen
-import com.kaelmoreno.compose.composemultiplatformbase.presentation.screen.UserListScreen
+import com.kaelmoreno.compose.composemultiplatformbase.presentation.screen.main_screen.MainScreenRoot
+import com.kaelmoreno.compose.composemultiplatformbase.presentation.screen.post_list_screen.PostListScreenRoot
+import com.kaelmoreno.compose.composemultiplatformbase.presentation.screen.user_list_screen.UserListScreenRoot
 
 @Composable
 fun AppNavigation(
@@ -23,7 +23,7 @@ fun AppNavigation(
     ) {
         composable<Screen.Main> {
             Logger.d("Navigating to Main screen", "Navigation")
-            MainScreen(
+            MainScreenRoot(
                 onNavigateToUsers = {
                     Logger.i("Navigating to Users screen via NavController", "Navigation")
                     navController.navigate(Screen.Users)
@@ -37,7 +37,7 @@ fun AppNavigation(
 
         composable<Screen.Users> {
             Logger.d("Navigating to Users screen", "Navigation")
-            UserListScreen(
+            UserListScreenRoot(
                 onBack = {
                     Logger.i("Navigating back from Users screen", "Navigation")
                     navController.popBackStack()
@@ -47,7 +47,7 @@ fun AppNavigation(
 
         composable<Screen.Posts> {
             Logger.d("Navigating to Posts screen", "Navigation")
-            PostsListScreen(
+            PostListScreenRoot(
                 onBack = {
                     Logger.i("Navigating back from Posts screen", "Navigation")
                     navController.popBackStack()

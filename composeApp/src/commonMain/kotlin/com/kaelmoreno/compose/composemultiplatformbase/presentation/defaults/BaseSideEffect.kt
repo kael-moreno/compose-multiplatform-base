@@ -1,0 +1,3 @@
+package com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults
+
+interface BaseSideEffect

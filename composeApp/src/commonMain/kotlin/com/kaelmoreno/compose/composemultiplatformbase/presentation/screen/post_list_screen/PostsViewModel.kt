@@ -1,8 +1,9 @@
-package com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel
+package com.kaelmoreno.compose.composemultiplatformbase.presentation.screen.post_list_screen
 
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
 import com.kaelmoreno.compose.composemultiplatformbase.data.model.Post
 import com.kaelmoreno.compose.composemultiplatformbase.data.network.ApiService
+import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +16,7 @@ data class PostsUiState(
 
 class PostsViewModel(
     private val apiService: ApiService
-) : BaseViewModel() {
+) : BaseViewModel<PostListScreenSideEffect>() {
 
     // Own the posts state directly in this ViewModel
     private val _uiState = MutableStateFlow(PostsUiState())
@@ -25,7 +26,17 @@ class PostsViewModel(
         Logger.i("PostsViewModel initialized with dependency injection", "PostsViewModel")
     }
 
-    fun loadPosts() {
+    fun onAction(action : PostListScreenAction) {
+        when(action) {
+            PostListScreenAction.OnBackNavigate -> sendSideEffect(PostListScreenSideEffect.BackNavigate)
+            PostListScreenAction.OnClearSelectedPost -> clearSelectedPost()
+            PostListScreenAction.OnLoadPosts -> loadPosts()
+            PostListScreenAction.OnRetry -> retry()
+            is PostListScreenAction.OnSelectPost -> selectPost(post = action.post)
+        }
+    }
+
+    private fun loadPosts() {
         Logger.i("Loading posts requested", "PostsViewModel")
         executeOperationWithFlow(
             operation = { apiService.getPosts() },
@@ -37,12 +48,12 @@ class PostsViewModel(
         )
     }
 
-    fun selectPost(post: Post) {
+    private fun selectPost(post: Post) {
         Logger.d("Post selected: ${post.title}", "PostsViewModel")
         _uiState.update { it.copy(selectedPost = post) }
     }
 
-    fun clearSelectedPost() {
+    private fun clearSelectedPost() {
         Logger.d("Clearing selected post", "PostsViewModel")
         _uiState.update { it.copy(selectedPost = null) }
     }

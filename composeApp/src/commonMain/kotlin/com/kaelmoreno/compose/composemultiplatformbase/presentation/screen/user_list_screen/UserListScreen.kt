@@ -1,14 +1,31 @@
-package com.kaelmoreno.compose.composemultiplatformbase.presentation.screen
+package com.kaelmoreno.compose.composemultiplatformbase.presentation.screen.user_list_screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -19,18 +36,14 @@ import com.kaelmoreno.compose.composemultiplatformbase.data.model.User
 import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.EmptyContent
 import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.ErrorContent
 import com.kaelmoreno.compose.composemultiplatformbase.presentation.defaults.LoadingContent
-import com.kaelmoreno.compose.composemultiplatformbase.presentation.viewmodel.UserViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun UserListScreen(
-    onBack: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    // Use Koin for ViewModel injection
-    val viewModel: UserViewModel = koinViewModel()
 
+@Composable
+fun UserListScreenRoot(
+    onBack: () -> Unit,
+    viewModel: UserViewModel = koinViewModel()
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     // Get loading and error states from BaseViewModel
@@ -39,7 +52,7 @@ fun UserListScreen(
 
     LaunchedEffect(Unit) {
         Logger.i("UserListScreen initialized", "UI")
-        viewModel.loadUsers()
+        viewModel.onAction(UserListScreenAction.OnLoadUsers)
     }
 
     // Debug logging for UI state changes
@@ -47,8 +60,26 @@ fun UserListScreen(
         Logger.d("UI State selectedUser changed to: ${uiState.selectedUser?.name}", "UI")
     }
 
+
+    UserListScreen(
+        isLoading,
+        error,
+        uiState
+    ) { action ->
+        viewModel.onAction(action)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun UserListScreen(
+    isLoading: Boolean,
+    error: String?,
+    uiState: UserUiState,
+    action: (UserListScreenAction) -> Unit
+) {
     Column(
-        modifier = modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
         // TopAppBar with proper Material Icons
@@ -59,7 +90,7 @@ fun UserListScreen(
             navigationIcon = {
                 IconButton(onClick = {
                     Logger.d("Back button pressed", "UI")
-                    onBack()
+                    action(UserListScreenAction.OnBackNavigation)
                 }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -69,7 +100,7 @@ fun UserListScreen(
             },
             actions = {
                 // Refresh action in app bar
-                IconButton(onClick = { viewModel.loadUsers() }) {
+                IconButton(onClick = { action(UserListScreenAction.OnLoadUsers) }) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = "Refresh"
@@ -90,15 +121,18 @@ fun UserListScreen(
                         itemLoading = "Users"
                     )
                 }
+
                 error != null -> {
                     ErrorContent(
-                        error = error!!,
-                        onRetry = { viewModel.retry() }
+                        error = error,
+                        onRetry = { action(UserListScreenAction.OnRetry) }
                     )
                 }
+
                 uiState.users.isEmpty() -> {
-                    EmptyContent(onRefresh = { viewModel.loadUsers() })
+                    EmptyContent(onRefresh = { action(UserListScreenAction.OnLoadUsers) })
                 }
+
                 else -> {
                     // Put everything in a single LazyColumn for proper scrolling
                     LazyColumn(
@@ -120,9 +154,9 @@ fun UserListScreen(
                                 user = user,
                                 onClick = {
                                     if (uiState.selectedUser?.id == user.id) {
-                                        viewModel.clearSelectedUser() // Close if same user clicked
+                                        action(UserListScreenAction.OnClearSelectedUser) // Close if same user clicked
                                     } else {
-                                        viewModel.selectUser(user) // Select new user
+                                        action(UserListScreenAction.OnSelectUser(user)) // Select new user
                                     }
                                 }
                             )
@@ -131,7 +165,7 @@ fun UserListScreen(
                             if (uiState.selectedUser?.id == user.id) {
                                 UserDetailCard(
                                     user = user,
-                                    onDismiss = { viewModel.clearSelectedUser() }
+                                    onDismiss = { action(UserListScreenAction.OnClearSelectedUser) }
                                 )
                             }
                         }
