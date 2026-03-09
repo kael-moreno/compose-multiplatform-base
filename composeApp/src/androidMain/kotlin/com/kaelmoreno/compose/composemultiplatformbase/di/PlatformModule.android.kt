@@ -1,14 +1,13 @@
 package com.kaelmoreno.compose.composemultiplatformbase.di
 
 import android.content.Context
+import android.content.pm.PackageManager
 import com.kaelmoreno.compose.composemultiplatformbase.AndroidPlatform
-import com.kaelmoreno.compose.composemultiplatformbase.BuildConfig
 import com.kaelmoreno.compose.composemultiplatformbase.Logger
 import com.kaelmoreno.compose.composemultiplatformbase.Platform
 import android.annotation.SuppressLint
 import android.os.Build
 import android.provider.Settings
-import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 import java.util.UUID
 
@@ -20,12 +19,20 @@ actual val platformModule = module {
     }
 }
 
+private fun getAppVersion(context: Context): String {
+    return try {
+        context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "unknown"
+    } catch (e: PackageManager.NameNotFoundException) {
+        "unknown"
+    }
+}
+
 private fun createAndroidPlatform(context: Context): Platform {
     Logger.d("Creating Android platform instance with Koin-injected context", "Platform")
     return AndroidPlatform(
         deviceUDID = getDeviceUDIDWithContext(context),
         fcmKey = "", // This should be set from Firebase configuration when available
-        appVersion = BuildConfig.VERSION_NAME,
+        appVersion = getAppVersion(context),
         deviceOS = "Android",
         deviceOSVersion = Build.VERSION.RELEASE,
         deviceManufacturer = Build.MANUFACTURER,
